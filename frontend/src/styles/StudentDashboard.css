@@ -1,0 +1,691 @@
+/* ============================================
+   STUDENT DASHBOARD STYLES
+   ============================================ */
+
+/* Reset et styles de base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+/* ============================================
+   WELCOME SECTION
+   ============================================ */
+.welcome-section {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.welcome-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.user-greeting {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.user-message {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.user-status {
+  text-align: right;
+}
+
+.last-connection {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.edit-profile-btn {
+  background-color: #c47a00;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.edit-profile-btn:hover {
+  background: linear-gradient(90deg, #FFD700, #8e3a2f, #1c1c1c, #FFD700);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(196, 122, 0, 0.3);
+}
+
+/* ============================================
+   SECTION TITLES
+   ============================================ */
+.section-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+
+/* ============================================
+   COURSES SECTION
+   ============================================ */
+.courses-section {
+  margin-bottom: 50px;
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+}
+
+.course-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.course-image {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.intro-ai {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.deep-learning {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.nlp {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.ethics {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.course-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: white;
+  padding: 20px;
+}
+
+.course-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.completed-badge {
+  background: #27ae60;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+.course-content {
+  padding: 25px;
+}
+
+.course-description {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.progress-container {
+  margin-bottom: 20px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.progress-bar {
+  background: #e1e5e9;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #c47a00, #FFD700);
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  animation: fillProgress 2s ease-out;
+}
+
+@keyframes fillProgress {
+  from {
+    width: 0;
+  }
+}
+
+.continue-btn,
+.certificate-btn {
+  width: 100%;
+  background-color: #c47a00;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.continue-btn:hover,
+.certificate-btn:hover {
+  background: linear-gradient(90deg, #FFD700, #8e3a2f, #1c1c1c, #FFD700);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   ACHIEVEMENTS SECTION
+   ============================================ */
+.achievements-section {
+  margin-bottom: 50px;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 25px;
+}
+
+.achievement-item {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.achievement-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.achievement-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+}
+
+.achievement-icon.python {
+  background: linear-gradient(135deg, #3776ab, #ffd43b);
+}
+
+.achievement-icon.deep-cert {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.achievement-icon.ml-master {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.achievement-icon.ai-pioneer {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.achievement-icon.nlp-innovator {
+  background: linear-gradient(135deg, #43e97b, #38f9d7);
+}
+
+.achievement-icon.ethics-cert {
+  background: linear-gradient(135deg, #fa709a, #fee140);
+}
+
+.achievement-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.achievement-type {
+  color: #666;
+  font-size: 0.9rem;
+  background: #f8f9fa;
+  padding: 4px 12px;
+  border-radius: 15px;
+  display: inline-block;
+}
+
+/* ============================================
+   STATISTICS SECTION
+   ============================================ */
+.statistics-section {
+  margin-bottom: 50px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 30px;
+}
+
+.stat-chart {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.chart-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 25px;
+}
+
+/* Bar Chart */
+.bar-chart {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  height: 200px;
+  gap: 15px;
+}
+
+.bar-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.bar {
+  width: 100%;
+  background: linear-gradient(180deg, #c47a00, #FFD700);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  transition: all 0.3s ease;
+  animation: growBar 1.5s ease-out;
+}
+
+@keyframes growBar {
+  from {
+    height: 0;
+  }
+}
+
+.bar:hover {
+  background: linear-gradient(180deg, #8e3a2f, #c47a00);
+  transform: scale(1.05);
+}
+
+.bar-value {
+  color: white;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.bar-label {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Pie Chart */
+.pie-chart {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.donut {
+  width: 200px;
+  height: 200px;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-color {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+}
+
+.legend-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* ============================================
+   RECOMMENDATIONS SECTION
+   ============================================ */
+.recommendations-section {
+  margin-bottom: 50px;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+.recommendation-card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.recommendation-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.recommendation-tags {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+}
+
+.tag.innovation {
+  background: #e74c3c;
+}
+
+.tag.advanced {
+  background: #9b59b6;
+}
+
+.tag.deployment {
+  background: #3498db;
+}
+
+.tag.intermediate {
+  background: #f39c12;
+}
+
+.tag.computer-vision {
+  background: #1abc9c;
+}
+
+.tag.beginner {
+  background: #27ae60;
+}
+
+.view-course-btn {
+  background-color: #c47a00;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.view-course-btn:hover {
+  background: linear-gradient(90deg, #FFD700, #8e3a2f, #1c1c1c, #FFD700);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.course-card,
+.achievement-item,
+.recommendation-card,
+.stat-chart {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.course-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.course-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.course-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.course-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.achievement-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.achievement-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.achievement-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.achievement-item:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.achievement-item:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.achievement-item:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 20px;
+  }
+
+  .welcome-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .user-status {
+    text-align: center;
+  }
+
+  .courses-grid,
+  .achievements-grid,
+  .stats-grid,
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pie-chart {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .bar-chart {
+    height: 150px;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-greeting {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .achievements-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .achievement-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+  }
+
+  .achievement-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY & FOCUS STATES
+   ============================================ */
+.continue-btn:focus,
+.certificate-btn:focus,
+.view-course-btn:focus,
+.edit-profile-btn:focus {
+  outline: 3px solid rgba(196, 122, 0, 0.3);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   SCROLLBAR CUSTOMIZATION
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c47a00;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8e3a2f;
+}
+
+/* ============================================
+   TOUCH DEVICES
+   ============================================ */
+@media (hover: none) {
+  .course-card:hover,
+  .achievement-item:hover,
+  .recommendation-card:hover,
+  .stat-chart:hover {
+    transform: none;
+  }
+
+  .continue-btn:hover,
+  .certificate-btn:hover,
+  .view-course-btn:hover,
+  .edit-profile-btn:hover {
+    transform: none;
+  }
+}
