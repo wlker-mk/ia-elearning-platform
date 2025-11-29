@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+.env.local
+*.md
+README.md
+Makefile
+.vscode
+.idea
+bin/
+vendor/
+*.log
+logs/
+tmp/
+coverage.out
+coverage.html

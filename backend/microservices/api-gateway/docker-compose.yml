@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # API GATEWAY (Point d'entrée unique)
+  # ============================================
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVICE_PORT=8000
+      - DEBUG=true
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      - REDIS_URL=redis:6379
+      - RATE_LIMIT_MAX=100
+      - RATE_LIMIT_WINDOW=60
+      
+      # Core Services
+      - USER_SERVICE_URL=http://user-service:8001
+      - AUTH_SERVICE_URL=http://auth-service:8002
+      
+      # Course & Learning
+      - COURSES_SERVICE_URL=http://courses-service:8003
+      - ENROLLMENT_SERVICE_URL=http://enrollment-service:8004
+      - QUIZZES_SERVICE_URL=http://quizzes-service:8005
+      
+      # Payment & Booking
+      - PAYMENTS_SERVICE_URL=http://payments-service:8006
+      - BOOKINGS_SERVICE_URL=http://bookings-service:8007
+      
+      # Communication
+      - NOTIFICATIONS_SERVICE_URL=http://notifications-service:8008
+      - COMMUNICATIONS_SERVICE_URL=http://communications-service:8009
+      - CHATBOT_SERVICE_URL=http://chatbot-service:8010
+      
+      # Analytics & Monitoring
+      - ANALYTICS_SERVICE_URL=http://analytics-service:8011
+      - MONITORING_SERVICE_URL=http://monitoring-service:8012
+      
+      # Utility
+      - SEARCH_SERVICE_URL=http://search-service:8013
+      - CACHE_SERVICE_URL=http://cache-service:8014
+      - STORAGE_SERVICE_URL=http://storage-service:8015
+      
+      # Advanced Features
+      - GAMIFICATION_SERVICE_URL=http://gamification-service:8016
+      - REVIEWS_SERVICE_URL=http://reviews-service:8017
+      - WEBINARS_SERVICE_URL=http://webinars-service:8018
+      
+      # Business
+      - SPONSORS_SERVICE_URL=http://sponsors-service:8019
+      
+      # Additional
+      - I18N_SERVICE_URL=http://i18n-service:8020
+      - SECURITY_SERVICE_URL=http://security-service:8021
+      
+    depends_on:
+      - redis
+    networks:
+      - microservices
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - ./logs:/var/log
+
+  # ============================================
+  # REDIS (Cache & Rate Limiting)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: api-gateway-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - microservices
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+networks:
+  microservices:
+    driver: bridge
+
+volumes:
+  redis-data:

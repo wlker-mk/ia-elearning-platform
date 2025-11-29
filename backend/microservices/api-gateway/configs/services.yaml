@@ -1,0 +1,160 @@
+# ============================================
+# SERVICES CONFIGURATION
+# ============================================
+
+services:
+  # Core Services
+  - name: user-service
+    base_url: ${USER_SERVICE_URL:-http://user-service:8001}
+    timeout: 15s
+    retries: 3
+    health_url: /health
+    enabled: true
+    
+  - name: auth-service
+    base_url: ${AUTH_SERVICE_URL:-http://auth-service:8002}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
+
+  # Course & Learning Services
+  - name: courses-service
+    base_url: ${COURSES_SERVICE_URL:-http://courses-service:8003}
+    timeout: 15s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: enrollment-service
+    base_url: ${ENROLLMENT_SERVICE_URL:-http://enrollment-service:8004}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: quizzes-service
+    base_url: ${QUIZZES_SERVICE_URL:-http://quizzes-service:8005}
+    timeout: 15s
+    retries: 3
+    health_url: /health
+    enabled: true
+
+  # Payment & Booking Services
+  - name: payments-service
+    base_url: ${PAYMENTS_SERVICE_URL:-http://payments-service:8006}
+    timeout: 20s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: bookings-service
+    base_url: ${BOOKINGS_SERVICE_URL:-http://bookings-service:8007}
+    timeout: 15s
+    retries: 3
+    health_url: /health
+    enabled: true
+
+  # Communication Services
+  - name: notifications-service
+    base_url: ${NOTIFICATIONS_SERVICE_URL:-http://notifications-service:8008}
+    timeout: 10s
+    retries: 2
+    health_url: /health
+    enabled: true
+  
+  - name: communications-service
+    base_url: ${COMMUNICATIONS_SERVICE_URL:-http://communications-service:8009}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: chatbot-service
+    base_url: ${CHATBOT_SERVICE_URL:-http://chatbot-service:8010}
+    timeout: 15s
+    retries: 2
+    health_url: /health
+    enabled: true
+
+  # Analytics & Monitoring
+  - name: analytics-service
+    base_url: ${ANALYTICS_SERVICE_URL:-http://analytics-service:8011}
+    timeout: 15s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: monitoring-service
+    base_url: ${MONITORING_SERVICE_URL:-http://monitoring-service:8012}
+    timeout: 10s
+    retries: 2
+    health_url: /health
+    enabled: true
+
+  # Utility Services
+  - name: search-service
+    base_url: ${SEARCH_SERVICE_URL:-http://search-service:8013}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: cache-service
+    base_url: ${CACHE_SERVICE_URL:-http://cache-service:8014}
+    timeout: 5s
+    retries: 2
+    health_url: /health
+    enabled: true
+  
+  - name: storage-service
+    base_url: ${STORAGE_SERVICE_URL:-http://storage-service:8015}
+    timeout: 20s
+    retries: 3
+    health_url: /health
+    enabled: true
+
+  # Advanced Features
+  - name: gamification-service
+    base_url: ${GAMIFICATION_SERVICE_URL:-http://gamification-service:8016}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: reviews-service
+    base_url: ${REVIEWS_SERVICE_URL:-http://reviews-service:8017}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: webinars-service
+    base_url: ${WEBINARS_SERVICE_URL:-http://webinars-service:8018}
+    timeout: 15s
+    retries: 3
+    health_url: /health
+    enabled: true
+
+  # Business Services
+  - name: sponsors-service
+    base_url: ${SPONSORS_SERVICE_URL:-http://sponsors-service:8019}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
+
+  # Additional Services
+  - name: i18n-service
+    base_url: ${I18N_SERVICE_URL:-http://i18n-service:8020}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
+  
+  - name: security-service
+    base_url: ${SECURITY_SERVICE_URL:-http://security-service:8021}
+    timeout: 10s
+    retries: 3
+    health_url: /health
+    enabled: true
