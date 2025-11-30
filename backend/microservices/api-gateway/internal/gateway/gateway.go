@@ -1,4 +1,4 @@
-package main
+package gateway
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -16,12 +17,12 @@ import (
 )
 
 type Gateway struct {
-	services       map[string]*ServiceConfig
-	redisClient    *redis.Client
-	rateLimiter    *RateLimiter
-	jwtSecret      string
-	circuitBreaker *CircuitBreaker
-	httpClient     *http.Client
+	Services       map[string]*ServiceConfig
+	RedisClient    *redis.Client
+	RateLimiter    *RateLimiter
+	JwtSecret      string
+	CircuitBreaker *CircuitBreaker
+	HttpClient     *http.Client
 }
 
 type ServiceConfig struct {
@@ -33,14 +34,12 @@ type ServiceConfig struct {
 }
 
 func NewGateway() *Gateway {
-	// Initialize Redis
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     getEnv("REDIS_URL", "localhost:6379"),
 		Password: getEnv("REDIS_PASSWORD", ""),
 		DB:       0,
 	})
 
-	// Test Redis connection
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -51,67 +50,50 @@ func NewGateway() *Gateway {
 	}
 
 	gateway := &Gateway{
-		services:       make(map[string]*ServiceConfig),
-		redisClient:    redisClient,
-		rateLimiter:    NewRateLimiter(redisClient),
-		jwtSecret:      getEnv("JWT_SECRET", "your-secret-key-here"),
-		circuitBreaker: NewCircuitBreaker(),
-		httpClient: &http.Client{
+		Services:       make(map[string]*ServiceConfig),
+		RedisClient:    redisClient,
+		RateLimiter:    NewRateLimiter(redisClient),
+		JwtSecret:      getEnv("JWT_SECRET", "your-secret-key-here"),
+		CircuitBreaker: NewCircuitBreaker(),
+		HttpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
 	}
 
-	// Register services
 	gateway.registerAllServices()
-
 	return gateway
 }
 
 func (g *Gateway) ProxyHandler(serviceName string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		service, exists := g.services[serviceName]
+		service, exists := g.Services[serviceName]
 		if !exists {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Service not found",
-			})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
 			return
 		}
 
-		// Check circuit breaker
-		if !g.circuitBreaker.AllowRequest(serviceName) {
-			c.JSON(http.StatusServiceUnavailable, gin.H{
-				"error": "Service temporarily unavailable",
-			})
+		if !g.CircuitBreaker.AllowRequest(serviceName) {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Service temporarily unavailable"})
 			return
 		}
 
-		// Parse target URL
 		target, err := url.Parse(service.BaseURL)
 		if err != nil {
 			log.Printf("Error parsing service URL: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Internal server error",
-			})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
 
-		// Create reverse proxy
 		proxy := httputil.NewSingleHostReverseProxy(target)
-
-		// Custom director to modify the request
 		originalDirector := proxy.Director
+		
 		proxy.Director = func(req *http.Request) {
 			originalDirector(req)
-
-			// Remove the service prefix from path
 			req.URL.Path = strings.TrimPrefix(c.Request.URL.Path, "/api")
 			req.URL.RawQuery = c.Request.URL.RawQuery
-
-			// Forward headers
 			req.Header.Set("X-Forwarded-Host", c.Request.Host)
 			req.Header.Set("X-Origin-Host", target.Host)
 
-			// Forward user context
 			if userID, exists := c.Get("user_id"); exists {
 				req.Header.Set("X-User-ID", fmt.Sprintf("%v", userID))
 			}
@@ -120,45 +102,33 @@ func (g *Gateway) ProxyHandler(serviceName string) gin.HandlerFunc {
 			}
 		}
 
-		// Custom error handler
 		proxy.ErrorHandler = func(w http.ResponseWriter, req *http.Request, err error) {
 			log.Printf("Proxy error for %s: %v", serviceName, err)
-			g.circuitBreaker.RecordFailure(serviceName)
-
+			g.CircuitBreaker.RecordFailure(serviceName)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadGateway)
 			fmt.Fprintf(w, `{"error": "Service unavailable", "service": "%s"}`, serviceName)
 		}
 
-		// Modify response
 		proxy.ModifyResponse = func(resp *http.Response) error {
-			// Record success for circuit breaker
 			if resp.StatusCode < 500 {
-				g.circuitBreaker.RecordSuccess(serviceName)
+				g.CircuitBreaker.RecordSuccess(serviceName)
 			} else {
-				g.circuitBreaker.RecordFailure(serviceName)
+				g.CircuitBreaker.RecordFailure(serviceName)
 			}
-
-			// Add custom headers
 			resp.Header.Set("X-Gateway", "api-gateway")
 			resp.Header.Set("X-Service", serviceName)
-
 			return nil
 		}
 
-		// Set timeout
-		c.Request = c.Request.WithContext(
-			contextWithTimeout(c.Request.Context(), service.Timeout),
-		)
-
-		// Serve the request
+		c.Request = c.Request.WithContext(contextWithTimeout(c.Request.Context(), service.Timeout))
 		proxy.ServeHTTP(c.Writer, c.Request)
 	}
 }
 
 func (g *Gateway) Close() {
-	if g.redisClient != nil {
-		g.redisClient.Close()
+	if g.RedisClient != nil {
+		g.RedisClient.Close()
 		log.Println("✅ Redis connection closed")
 	}
 }
@@ -168,17 +138,9 @@ func contextWithTimeout(ctx context.Context, timeout time.Duration) context.Cont
 	return newCtx
 }
 
-func copyRequestBody(req *http.Request) ([]byte, error) {
-	if req.Body == nil {
-		return nil, nil
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
 	}
-
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Body = io.NopCloser(strings.NewReader(string(body)))
-
-	return body, nil
+	return defaultValue
 }
