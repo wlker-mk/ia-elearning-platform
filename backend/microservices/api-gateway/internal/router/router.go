@@ -1,322 +1,241 @@
-package main
+package router
 
 import (
-	"net/http"
+	"api-gateway/internal/gateway"
+	"api-gateway/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func setupAllRoutes(gateway *Gateway) *gin.Engine {
-	if getEnv("DEBUG", "false") == "false" {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
+func SetupAllRoutes(gw *gateway.Gateway) *gin.Engine {
 	router := gin.New()
 
-	// Global Middleware
 	router.Use(gin.Recovery())
-	router.Use(LoggerMiddleware())
-	router.Use(CORSMiddleware())
-	router.Use(RequestIDMiddleware())
-	router.Use(SecurityMiddleware())
+	router.Use(middleware.Logger())
+	router.Use(middleware.CORS())
+	router.Use(middleware.RequestID())
+	router.Use(middleware.Security())
 
-	// Health & Monitoring
-	router.GET("/health", HealthCheck)
-	router.GET("/api/health", HealthCheck)
-	router.GET("/api/services/health", gateway.ServicesHealthHandler)
-	router.GET("/api/gateway/stats", gateway.GatewayStatsHandler)
+	router.GET("/health", healthCheck)
+	router.GET("/api/health", healthCheck)
+	router.GET("/api/services/health", servicesHealthHandler(gw))
+	router.GET("/api/gateway/stats", gatewayStatsHandler(gw))
 
-	// Public routes (no auth required)
 	public := router.Group("/api")
 	{
-		// Auth routes
-		public.POST("/auth/login", gateway.ProxyHandler("auth-service"))
-		public.POST("/auth/register", gateway.ProxyHandler("auth-service"))
-		public.POST("/auth/refresh", gateway.ProxyHandler("auth-service"))
-		public.POST("/auth/forgot-password", gateway.ProxyHandler("auth-service"))
-		public.POST("/auth/reset-password", gateway.ProxyHandler("auth-service"))
-		
-		// Public search
-		public.GET("/search/courses", gateway.ProxyHandler("search-service"))
-		public.GET("/courses/public", gateway.ProxyHandler("courses-service"))
+		public.POST("/auth/login", gw.ProxyHandler("auth-service"))
+		public.POST("/auth/register", gw.ProxyHandler("auth-service"))
+		public.POST("/auth/refresh", gw.ProxyHandler("auth-service"))
+		public.GET("/search/courses", gw.ProxyHandler("search-service"))
+		public.GET("/courses/public", gw.ProxyHandler("courses-service"))
 	}
 
-	// Protected routes (auth required)
 	api := router.Group("/api")
-	api.Use(AuthMiddleware(gateway.jwtSecret))
-	api.Use(RateLimitMiddleware(gateway.rateLimiter))
+	api.Use(middleware.Auth(gw.JwtSecret))
+	api.Use(middleware.RateLimit(gw.RateLimiter))
 	{
-		// User Service Routes
-		users := api.Group("/users")
-		{
-			users.GET("", gateway.ProxyHandler("user-service"))
-			users.POST("", gateway.ProxyHandler("user-service"))
-			users.GET("/:id", gateway.ProxyHandler("user-service"))
-			users.PUT("/:id", gateway.ProxyHandler("user-service"))
-			users.DELETE("/:id", gateway.ProxyHandler("user-service"))
-			users.GET("/:id/profile", gateway.ProxyHandler("user-service"))
-			users.PUT("/:id/profile", gateway.ProxyHandler("user-service"))
-		}
-
-		// Course Service Routes
-		courses := api.Group("/courses")
-		{
-			courses.GET("", gateway.ProxyHandler("courses-service"))
-			courses.POST("", gateway.ProxyHandler("courses-service"))
-			courses.GET("/:id", gateway.ProxyHandler("courses-service"))
-			courses.PUT("/:id", gateway.ProxyHandler("courses-service"))
-			courses.DELETE("/:id", gateway.ProxyHandler("courses-service"))
-			courses.GET("/:id/modules", gateway.ProxyHandler("courses-service"))
-			courses.POST("/:id/modules", gateway.ProxyHandler("courses-service"))
-			courses.GET("/:id/lessons", gateway.ProxyHandler("courses-service"))
-		}
-
-		// Enrollment Service Routes
-		enrollment := api.Group("/enrollment")
-		{
-			enrollment.POST("", gateway.ProxyHandler("enrollment-service"))
-			enrollment.GET("/my-courses", gateway.ProxyHandler("enrollment-service"))
-			enrollment.GET("/:id", gateway.ProxyHandler("enrollment-service"))
-			enrollment.DELETE("/:id", gateway.ProxyHandler("enrollment-service"))
-			enrollment.PUT("/:id/progress", gateway.ProxyHandler("enrollment-service"))
-		}
-
-		// Quiz Service Routes
-		quizzes := api.Group("/quizzes")
-		{
-			quizzes.GET("", gateway.ProxyHandler("quizzes-service"))
-			quizzes.POST("", gateway.ProxyHandler("quizzes-service"))
-			quizzes.GET("/:id", gateway.ProxyHandler("quizzes-service"))
-			quizzes.PUT("/:id", gateway.ProxyHandler("quizzes-service"))
-			quizzes.DELETE("/:id", gateway.ProxyHandler("quizzes-service"))
-			quizzes.POST("/:id/submit", gateway.ProxyHandler("quizzes-service"))
-			quizzes.GET("/:id/results", gateway.ProxyHandler("quizzes-service"))
-		}
-
-		// Payment Service Routes
-		payments := api.Group("/payments")
-		{
-			payments.POST("", gateway.ProxyHandler("payments-service"))
-			payments.GET("/:id", gateway.ProxyHandler("payments-service"))
-			payments.GET("/history", gateway.ProxyHandler("payments-service"))
-			payments.POST("/:id/refund", gateway.ProxyHandler("payments-service"))
-		}
-
-		// Subscription Routes
-		subscriptions := api.Group("/subscriptions")
-		{
-			subscriptions.GET("", gateway.ProxyHandler("payments-service"))
-			subscriptions.POST("", gateway.ProxyHandler("payments-service"))
-			subscriptions.GET("/:id", gateway.ProxyHandler("payments-service"))
-			subscriptions.PUT("/:id", gateway.ProxyHandler("payments-service"))
-			subscriptions.DELETE("/:id", gateway.ProxyHandler("payments-service"))
-		}
-
-		// Booking Service Routes
-		bookings := api.Group("/bookings")
-		{
-			bookings.GET("", gateway.ProxyHandler("bookings-service"))
-			bookings.POST("", gateway.ProxyHandler("bookings-service"))
-			bookings.GET("/:id", gateway.ProxyHandler("bookings-service"))
-			bookings.PUT("/:id", gateway.ProxyHandler("bookings-service"))
-			bookings.DELETE("/:id", gateway.ProxyHandler("bookings-service"))
-		}
-
-		// Notification Service Routes
-		notifications := api.Group("/notifications")
-		{
-			notifications.GET("", gateway.ProxyHandler("notifications-service"))
-			notifications.GET("/:id", gateway.ProxyHandler("notifications-service"))
-			notifications.PUT("/:id/read", gateway.ProxyHandler("notifications-service"))
-			notifications.DELETE("/:id", gateway.ProxyHandler("notifications-service"))
-			notifications.POST("/mark-all-read", gateway.ProxyHandler("notifications-service"))
-		}
-
-		// Communication Service Routes
-		communications := api.Group("/communications")
-		{
-			communications.POST("/email", gateway.ProxyHandler("communications-service"))
-			communications.POST("/sms", gateway.ProxyHandler("communications-service"))
-			communications.GET("/messages", gateway.ProxyHandler("communications-service"))
-		}
-
-		// Chatbot Service Routes
-		chatbot := api.Group("/chatbot")
-		{
-			chatbot.POST("/message", gateway.ProxyHandler("chatbot-service"))
-			chatbot.GET("/conversations", gateway.ProxyHandler("chatbot-service"))
-			chatbot.GET("/conversations/:id", gateway.ProxyHandler("chatbot-service"))
-		}
-
-		// Analytics Service Routes
-		analytics := api.Group("/analytics")
-		{
-			analytics.GET("/dashboard", gateway.ProxyHandler("analytics-service"))
-			analytics.GET("/reports", gateway.ProxyHandler("analytics-service"))
-			analytics.GET("/user-activity", gateway.ProxyHandler("analytics-service"))
-			analytics.GET("/course-stats", gateway.ProxyHandler("analytics-service"))
-			analytics.POST("/events", gateway.ProxyHandler("analytics-service"))
-		}
-
-		// Monitoring Service Routes
-		monitoring := api.Group("/monitoring")
-		{
-			monitoring.GET("/metrics", gateway.ProxyHandler("monitoring-service"))
-			monitoring.GET("/logs", gateway.ProxyHandler("monitoring-service"))
-			monitoring.GET("/alerts", gateway.ProxyHandler("monitoring-service"))
-		}
-
-		// Search Service Routes
-		search := api.Group("/search")
-		{
-			search.GET("/courses", gateway.ProxyHandler("search-service"))
-			search.GET("/users", gateway.ProxyHandler("search-service"))
-			search.POST("/index", gateway.ProxyHandler("search-service"))
-		}
-
-		// Storage Service Routes
-		storage := api.Group("/storage")
-		{
-			storage.POST("/upload", gateway.ProxyHandler("storage-service"))
-			storage.GET("/files/:id", gateway.ProxyHandler("storage-service"))
-			storage.DELETE("/files/:id", gateway.ProxyHandler("storage-service"))
-			storage.GET("/files", gateway.ProxyHandler("storage-service"))
-		}
-
-		// Gamification Service Routes
-		gamification := api.Group("/gamification")
-		{
-			gamification.GET("/badges", gateway.ProxyHandler("gamification-service"))
-			gamification.GET("/leaderboard", gateway.ProxyHandler("gamification-service"))
-			gamification.GET("/my-achievements", gateway.ProxyHandler("gamification-service"))
-			gamification.POST("/claim-reward", gateway.ProxyHandler("gamification-service"))
-		}
-
-		// Review Service Routes
-		reviews := api.Group("/reviews")
-		{
-			reviews.GET("", gateway.ProxyHandler("reviews-service"))
-			reviews.POST("", gateway.ProxyHandler("reviews-service"))
-			reviews.GET("/:id", gateway.ProxyHandler("reviews-service"))
-			reviews.PUT("/:id", gateway.ProxyHandler("reviews-service"))
-			reviews.DELETE("/:id", gateway.ProxyHandler("reviews-service"))
-			reviews.POST("/:id/helpful", gateway.ProxyHandler("reviews-service"))
-		}
-
-		// Webinar Service Routes
-		webinars := api.Group("/webinars")
-		{
-			webinars.GET("", gateway.ProxyHandler("webinars-service"))
-			webinars.POST("", gateway.ProxyHandler("webinars-service"))
-			webinars.GET("/:id", gateway.ProxyHandler("webinars-service"))
-			webinars.PUT("/:id", gateway.ProxyHandler("webinars-service"))
-			webinars.DELETE("/:id", gateway.ProxyHandler("webinars-service"))
-			webinars.POST("/:id/join", gateway.ProxyHandler("webinars-service"))
-			webinars.POST("/:id/leave", gateway.ProxyHandler("webinars-service"))
-		}
-
-		// Sponsor Service Routes
-		sponsors := api.Group("/sponsors")
-		{
-			sponsors.GET("", gateway.ProxyHandler("sponsors-service"))
-			sponsors.POST("", gateway.ProxyHandler("sponsors-service"))
-			sponsors.GET("/:id", gateway.ProxyHandler("sponsors-service"))
-			sponsors.PUT("/:id", gateway.ProxyHandler("sponsors-service"))
-			sponsors.DELETE("/:id", gateway.ProxyHandler("sponsors-service"))
-		}
-
-		// I18n Service Routes
-		i18n := api.Group("/translations")
-		{
-			i18n.GET("", gateway.ProxyHandler("i18n-service"))
-			i18n.GET("/:language", gateway.ProxyHandler("i18n-service"))
-			i18n.POST("", gateway.ProxyHandler("i18n-service"))
-		}
-
-		// Security Service Routes
-		security := api.Group("/security")
-		{
-			security.GET("/audit-logs", gateway.ProxyHandler("security-service"))
-			security.POST("/report-issue", gateway.ProxyHandler("security-service"))
-			security.GET("/permissions", gateway.ProxyHandler("security-service"))
-		}
-
-		// Cache Service Routes (internal use mostly)
-		cache := api.Group("/cache")
-		{
-			cache.GET("/:key", gateway.ProxyHandler("cache-service"))
-			cache.POST("", gateway.ProxyHandler("cache-service"))
-			cache.DELETE("/:key", gateway.ProxyHandler("cache-service"))
-		}
+		setupUserRoutes(api, gw)
+		setupCourseRoutes(api, gw)
+		setupEnrollmentRoutes(api, gw)
+		setupQuizRoutes(api, gw)
+		setupPaymentRoutes(api, gw)
+		setupBookingRoutes(api, gw)
+		setupNotificationRoutes(api, gw)
+		setupCommunicationRoutes(api, gw)
+		setupChatbotRoutes(api, gw)
+		setupAnalyticsRoutes(api, gw)
+		setupMonitoringRoutes(api, gw)
+		setupSearchRoutes(api, gw)
+		setupStorageRoutes(api, gw)
+		setupGamificationRoutes(api, gw)
+		setupReviewRoutes(api, gw)
+		setupWebinarRoutes(api, gw)
+		setupSponsorRoutes(api, gw)
+		setupI18nRoutes(api, gw)
+		setupSecurityRoutes(api, gw)
+		setupCacheRoutes(api, gw)
 	}
 
-	// Admin routes (requires admin role)
 	admin := router.Group("/api/admin")
-	admin.Use(AuthMiddleware(gateway.jwtSecret))
-	admin.Use(RateLimitMiddleware(gateway.rateLimiter))
-	admin.Use(AdminMiddleware())
+	admin.Use(middleware.Auth(gw.JwtSecret))
+	admin.Use(middleware.RateLimit(gw.RateLimiter))
+	admin.Use(middleware.Admin())
 	{
-		admin.GET("/users", gateway.ProxyHandler("user-service"))
-		admin.GET("/statistics", gateway.ProxyHandler("analytics-service"))
-		admin.GET("/system-health", gateway.ServicesHealthHandler)
-		admin.POST("/cache/clear", gateway.CacheClearHandler)
+		admin.GET("/users", gw.ProxyHandler("user-service"))
+		admin.GET("/statistics", gw.ProxyHandler("analytics-service"))
+		admin.GET("/system-health", servicesHealthHandler(gw))
+		admin.POST("/cache/clear", cacheClearHandler(gw))
 	}
 
 	return router
 }
 
-// ServicesHealthHandler returns health status of all services
-func (g *Gateway) ServicesHealthHandler(c *gin.Context) {
-	health := g.GetAllServicesHealth()
-	
-	allHealthy := true
-	for _, isHealthy := range health {
-		if !isHealthy {
-			allHealthy = false
-			break
-		}
+func setupUserRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	users := group.Group("/users")
+	{
+		users.GET("", gw.ProxyHandler("user-service"))
+		users.POST("", gw.ProxyHandler("user-service"))
+		users.GET("/:id", gw.ProxyHandler("user-service"))
+		users.PUT("/:id", gw.ProxyHandler("user-service"))
+		users.DELETE("/:id", gw.ProxyHandler("user-service"))
 	}
+}
 
-	status := http.StatusOK
-	if !allHealthy {
-		status = http.StatusServiceUnavailable
+func setupCourseRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	courses := group.Group("/courses")
+	{
+		courses.GET("", gw.ProxyHandler("courses-service"))
+		courses.POST("", gw.ProxyHandler("courses-service"))
+		courses.GET("/:id", gw.ProxyHandler("courses-service"))
+		courses.PUT("/:id", gw.ProxyHandler("courses-service"))
+		courses.DELETE("/:id", gw.ProxyHandler("courses-service"))
 	}
-
-	c.JSON(status, gin.H{
-		"status":   allHealthy,
-		"services": health,
-	})
 }
 
-// GatewayStatsHandler returns gateway statistics
-func (g *Gateway) GatewayStatsHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"status":           "operational",
-		"services_count":   len(g.services),
-		"circuit_breakers": g.circuitBreaker.GetAllStats(),
-		"rate_limiter":     g.rateLimiter.GetLimitInfo(),
-	})
+func setupEnrollmentRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	enrollment := group.Group("/enrollment")
+	{
+		enrollment.POST("", gw.ProxyHandler("enrollment-service"))
+		enrollment.GET("/my-courses", gw.ProxyHandler("enrollment-service"))
+		enrollment.GET("/:id", gw.ProxyHandler("enrollment-service"))
+	}
 }
 
-// CacheClearHandler clears the cache
-func (g *Gateway) CacheClearHandler(c *gin.Context) {
-	// Clear Redis cache logic here
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Cache cleared successfully",
-	})
+func setupQuizRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	quizzes := group.Group("/quizzes")
+	{
+		quizzes.GET("", gw.ProxyHandler("quizzes-service"))
+		quizzes.POST("", gw.ProxyHandler("quizzes-service"))
+		quizzes.GET("/:id", gw.ProxyHandler("quizzes-service"))
+	}
 }
 
-// AdminMiddleware checks if user is admin
-func AdminMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		role, exists := c.Get("user_role")
-		if !exists || role != "admin" {
-			c.JSON(http.StatusForbidden, gin.H{
-				"error": "Admin access required",
-			})
-			c.Abort()
-			return
-		}
-		c.Next()
+func setupPaymentRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	payments := group.Group("/payments")
+	{
+		payments.POST("", gw.ProxyHandler("payments-service"))
+		payments.GET("/:id", gw.ProxyHandler("payments-service"))
+		payments.GET("/history", gw.ProxyHandler("payments-service"))
+	}
+}
+
+func setupBookingRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	bookings := group.Group("/bookings")
+	{
+		bookings.GET("", gw.ProxyHandler("bookings-service"))
+		bookings.POST("", gw.ProxyHandler("bookings-service"))
+		bookings.GET("/:id", gw.ProxyHandler("bookings-service"))
+	}
+}
+
+func setupNotificationRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	notifications := group.Group("/notifications")
+	{
+		notifications.GET("", gw.ProxyHandler("notifications-service"))
+		notifications.PUT("/:id/read", gw.ProxyHandler("notifications-service"))
+	}
+}
+
+func setupCommunicationRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	communications := group.Group("/communications")
+	{
+		communications.POST("/email", gw.ProxyHandler("communications-service"))
+		communications.POST("/sms", gw.ProxyHandler("communications-service"))
+	}
+}
+
+func setupChatbotRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	chatbot := group.Group("/chatbot")
+	{
+		chatbot.POST("/message", gw.ProxyHandler("chatbot-service"))
+		chatbot.GET("/conversations", gw.ProxyHandler("chatbot-service"))
+	}
+}
+
+func setupAnalyticsRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	analytics := group.Group("/analytics")
+	{
+		analytics.GET("/dashboard", gw.ProxyHandler("analytics-service"))
+		analytics.GET("/reports", gw.ProxyHandler("analytics-service"))
+	}
+}
+
+func setupMonitoringRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	monitoring := group.Group("/monitoring")
+	{
+		monitoring.GET("/metrics", gw.ProxyHandler("monitoring-service"))
+		monitoring.GET("/logs", gw.ProxyHandler("monitoring-service"))
+	}
+}
+
+func setupSearchRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	search := group.Group("/search")
+	{
+		search.GET("/courses", gw.ProxyHandler("search-service"))
+		search.GET("/users", gw.ProxyHandler("search-service"))
+	}
+}
+
+func setupStorageRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	storage := group.Group("/storage")
+	{
+		storage.POST("/upload", gw.ProxyHandler("storage-service"))
+		storage.GET("/files/:id", gw.ProxyHandler("storage-service"))
+	}
+}
+
+func setupGamificationRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	gamification := group.Group("/gamification")
+	{
+		gamification.GET("/badges", gw.ProxyHandler("gamification-service"))
+		gamification.GET("/leaderboard", gw.ProxyHandler("gamification-service"))
+	}
+}
+
+func setupReviewRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	reviews := group.Group("/reviews")
+	{
+		reviews.GET("", gw.ProxyHandler("reviews-service"))
+		reviews.POST("", gw.ProxyHandler("reviews-service"))
+	}
+}
+
+func setupWebinarRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	webinars := group.Group("/webinars")
+	{
+		webinars.GET("", gw.ProxyHandler("webinars-service"))
+		webinars.POST("", gw.ProxyHandler("webinars-service"))
+	}
+}
+
+func setupSponsorRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	sponsors := group.Group("/sponsors")
+	{
+		sponsors.GET("", gw.ProxyHandler("sponsors-service"))
+		sponsors.POST("", gw.ProxyHandler("sponsors-service"))
+	}
+}
+
+func setupI18nRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	i18n := group.Group("/translations")
+	{
+		i18n.GET("", gw.ProxyHandler("i18n-service"))
+		i18n.GET("/:language", gw.ProxyHandler("i18n-service"))
+	}
+}
+
+func setupSecurityRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	security := group.Group("/security")
+	{
+		security.GET("/audit-logs", gw.ProxyHandler("security-service"))
+		security.POST("/report-issue", gw.ProxyHandler("security-service"))
+	}
+}
+
+func setupCacheRoutes(group *gin.RouterGroup, gw *gateway.Gateway) {
+	cache := group.Group("/cache")
+	{
+		cache.GET("/:key", gw.ProxyHandler("cache-service"))
+		cache.POST("", gw.ProxyHandler("cache-service"))
 	}
 }

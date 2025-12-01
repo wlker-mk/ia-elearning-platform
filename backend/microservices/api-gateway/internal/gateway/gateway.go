@@ -3,7 +3,6 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -86,7 +85,7 @@ func (g *Gateway) ProxyHandler(serviceName string) gin.HandlerFunc {
 
 		proxy := httputil.NewSingleHostReverseProxy(target)
 		originalDirector := proxy.Director
-		
+
 		proxy.Director = func(req *http.Request) {
 			originalDirector(req)
 			req.URL.Path = strings.TrimPrefix(c.Request.URL.Path, "/api")
