@@ -120,7 +120,9 @@ func (g *Gateway) ProxyHandler(serviceName string) gin.HandlerFunc {
 			return nil
 		}
 
-		c.Request = c.Request.WithContext(contextWithTimeout(c.Request.Context(), service.Timeout))
+		ctx, cancel := context.WithTimeout(c.Request.Context(), service.Timeout)
+		defer cancel()
+		c.Request = c.Request.WithContext(ctx)
 		proxy.ServeHTTP(c.Writer, c.Request)
 	}
 }
@@ -130,11 +132,6 @@ func (g *Gateway) Close() {
 		g.RedisClient.Close()
 		log.Println("✅ Redis connection closed")
 	}
-}
-
-func contextWithTimeout(ctx context.Context, timeout time.Duration) context.Context {
-	newCtx, _ := context.WithTimeout(ctx, timeout)
-	return newCtx
 }
 
 func getEnv(key, defaultValue string) string {
