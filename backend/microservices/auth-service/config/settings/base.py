@@ -6,6 +6,12 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 LOG_DIR = BASE_DIR / 'logs'
+STATIC_DIR = BASE_DIR / 'static'
+
+if not STATIC_DIR.exists():
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+
+STATICFILES_DIRS = [STATIC_DIR]
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-production')
@@ -68,7 +74,7 @@ if DATABASE_URL:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': parsed_url.path[1:] or config('DB_NAME', default='auth_db'),
             'USER': parsed_url.username or config('DB_USER', default='postgres'),
-            'PASSWORD': parsed_url.password or config('DB_PASSWORD', default='postgres'),
+            'PASSWORD': parsed_url.password or config('DB_PASSWORD', default='rene'),
             'HOST': parsed_url.hostname or config('DB_HOST', default='auth-postgres'),
             'PORT': str(parsed_url.port) if parsed_url.port else config('DB_PORT', default='5432'),
         }
@@ -79,7 +85,7 @@ else:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': config('DB_NAME', default='auth_db'),
             'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default='postgres'),
+            'PASSWORD': config('DB_PASSWORD', default='rene'),
             'HOST': config('DB_HOST', default='auth-postgres'),
             'PORT': config('DB_PORT', default='5432'),
         }

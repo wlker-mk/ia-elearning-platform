@@ -1,0 +1,140 @@
+# Default values for api-gateway
+
+replicaCount: 3
+
+image:
+  repository: your-registry/api-gateway
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: api.yourdomain.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: api-gateway-tls
+      hosts:
+        - api.yourdomain.com
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application configuration
+config:
+  port: 8000
+  debug: false
+  environment: production
+  
+  jwt:
+    secret: "your-jwt-secret-change-in-production"
+    expiration: "24h"
+  
+  redis:
+    url: "redis-service:6379"
+    password: ""
+    db: 0
+  
+  rateLimit:
+    max: 100
+    window: 60
+  
+  cors:
+    allowedOrigins: "*"
+
+# Services URLs
+services:
+  userService: "http://user-service:8001"
+  authService: "http://auth-service:8002"
+  coursesService: "http://courses-service:8003"
+  enrollmentService: "http://enrollment-service:8004"
+  quizzesService: "http://quizzes-service:8005"
+  paymentsService: "http://payments-service:8006"
+  bookingsService: "http://bookings-service:8007"
+  notificationsService: "http://notifications-service:8008"
+  communicationsService: "http://communications-service:8009"
+  chatbotService: "http://chatbot-service:8010"
+  analyticsService: "http://analytics-service:8011"
+  monitoringService: "http://monitoring-service:8012"
+  searchService: "http://search-service:8013"
+  cacheService: "http://cache-service:8014"
+  storageService: "http://storage-service:8015"
+  gamificationService: "http://gamification-service:8016"
+  reviewsService: "http://reviews-service:8017"
+  webinarsService: "http://webinars-service:8018"
+  sponsorsService: "http://sponsors-service:8019"
+  i18nService: "http://i18n-service:8020"
+  securityService: "http://security-service:8021"
+
+# Health check configuration
+healthCheck:
+  enabled: true
+  path: /health
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Readiness probe configuration
+readinessProbe:
+  enabled: true
+  path: /health
+  initialDelaySeconds: 15
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3

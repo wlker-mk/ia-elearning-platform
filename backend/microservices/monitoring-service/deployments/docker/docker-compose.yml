@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  monitoring-service:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+    ports:
+      - "9090:9090"
+    environment:
+      - PORT=9090
+      - MODE=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=monitoring
+      - DB_PASSWORD=monitoring_password
+      - DB_NAME=monitoring_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - monitoring-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=monitoring
+      - POSTGRES_PASSWORD=monitoring_password
+      - POSTGRES_DB=monitoring_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - monitoring-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - monitoring-network
+
+networks:
+  monitoring-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:

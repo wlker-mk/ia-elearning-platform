@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.dev
+    container_name: api-gateway-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVICE_PORT=8000
+      - DEBUG=true
+      - JWT_SECRET=dev-secret-key
+      - REDIS_URL=redis:6379
+      - RATE_LIMIT_MAX=100
+      - RATE_LIMIT_WINDOW=60
+    volumes:
+      - ../..:/app
+      - /app/tmp
+    depends_on:
+      - redis
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: api-gateway-redis-dev
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - dev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - dev-network
+
+networks:
+  dev-network:
+    driver: bridge
+
+volumes:
+  redis-data:

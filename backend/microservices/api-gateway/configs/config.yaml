@@ -1,0 +1,68 @@
+# ============================================
+# API GATEWAY CONFIGURATION
+# ============================================
+
+server:
+  port: 8000
+  mode: development  # development, production
+  timeout: 30s
+  read_timeout: 15s
+  write_timeout: 15s
+  
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 24h
+  refresh_expiration: 168h  # 7 days
+
+redis:
+  url: ${REDIS_URL}
+  password: ${REDIS_PASSWORD}
+  db: 0
+  pool_size: 10
+  max_retries: 3
+
+rate_limit:
+  enabled: true
+  max_requests: 100
+  window: 60s
+  storage: redis  # redis, memory
+
+circuit_breaker:
+  enabled: true
+  threshold: 5
+  timeout: 30s
+  max_requests: 100
+
+cors:
+  enabled: true
+  allowed_origins:
+    - "*"
+  allowed_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed_headers:
+    - Content-Type
+    - Authorization
+  expose_headers:
+    - X-Request-ID
+  allow_credentials: true
+  max_age: 3600
+
+logging:
+  level: info  # debug, info, warn, error
+  format: json  # json, text
+  output: stdout  # stdout, file
+  file_path: logs/gateway.log
+
+metrics:
+  enabled: true
+  path: /metrics
+  port: 9090
+
+health_check:
+  enabled: true
+  path: /health
+  interval: 30s

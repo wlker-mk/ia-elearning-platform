@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: default
+  labels:
+    app: api-gateway
+    version: v1.0.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: v1.0.0
+    spec:
+      containers:
+      - name: api-gateway
+        image: your-registry/api-gateway:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: SERVICE_PORT
+          value: "8000"
+        - name: DEBUG
+          value: "false"
+        - name: ENVIRONMENT
+          value: "production"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: api-gateway-secrets
+              key: jwt-secret
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-gateway-config
+              key: redis-url
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: api-gateway-secrets
+              key: redis-password
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: config
+          mountPath: /app/configs
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: api-gateway-config
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

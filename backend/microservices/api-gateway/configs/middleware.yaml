@@ -1,0 +1,57 @@
+# ============================================
+# MIDDLEWARE CONFIGURATION
+# ============================================
+
+middlewares:
+  - name: recovery
+    enabled: true
+    order: 1
+    
+  - name: logger
+    enabled: true
+    order: 2
+    config:
+      skip_paths:
+        - /health
+        - /metrics
+      
+  - name: cors
+    enabled: true
+    order: 3
+    
+  - name: request_id
+    enabled: true
+    order: 4
+    
+  - name: security
+    enabled: true
+    order: 5
+    config:
+      content_security_policy: "default-src 'self'"
+      x_frame_options: "DENY"
+      x_content_type_options: "nosniff"
+      x_xss_protection: "1; mode=block"
+      
+  - name: rate_limit
+    enabled: true
+    order: 6
+    config:
+      max_requests: 100
+      window: 60s
+      key_prefix: "ratelimit:"
+      
+  - name: auth
+    enabled: true
+    order: 7
+    config:
+      excluded_paths:
+        - /api/auth/login
+        - /api/auth/register
+        - /health
+        - /metrics
+      
+  - name: timeout
+    enabled: true
+    order: 8
+    config:
+      timeout: 30s

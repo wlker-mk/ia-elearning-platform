@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: default
+data:
+  redis-url: "redis-service:6379"
+  rate-limit-max: "100"
+  rate-limit-window: "60"
+  cors-allowed-origins: "*"
+  
+  # Service URLs
+  user-service-url: "http://user-service:8001"
+  auth-service-url: "http://auth-service:8002"
+  courses-service-url: "http://courses-service:8003"
+  enrollment-service-url: "http://enrollment-service:8004"
+  quizzes-service-url: "http://quizzes-service:8005"
+  payments-service-url: "http://payments-service:8006"
+  bookings-service-url: "http://bookings-service:8007"
+  notifications-service-url: "http://notifications-service:8008"
+  communications-service-url: "http://communications-service:8009"
+  chatbot-service-url: "http://chatbot-service:8010"
+  analytics-service-url: "http://analytics-service:8011"
+  monitoring-service-url: "http://monitoring-service:8012"
+  search-service-url: "http://search-service:8013"
+  cache-service-url: "http://cache-service:8014"
+  storage-service-url: "http://storage-service:8015"
+  gamification-service-url: "http://gamification-service:8016"
+  reviews-service-url: "http://reviews-service:8017"
+  webinars-service-url: "http://webinars-service:8018"
+  sponsors-service-url: "http://sponsors-service:8019"
+  i18n-service-url: "http://i18n-service:8020"
+  security-service-url: "http://security-service:8021"
