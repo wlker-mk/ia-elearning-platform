@@ -7,6 +7,7 @@ import (
 	"github.com/ai-elearning-platform/monitoring-service/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 // RequestID ajoute un ID unique à chaque requête
@@ -32,33 +33,33 @@ func Logger() gin.HandlerFunc {
 		query := c.Request.URL.RawQuery
 		
 		c.Next()
-		
-		latency := time.Since(start)
-		statusCode := c.Writer.Status()
-		
-		// Log avec contexte
-		fields := []interface{}{
-			logger.String("method", c.Request.Method),
-			logger.String("path", path),
-			logger.String("query", query),
-			logger.Int("status", statusCode),
-			logger.Duration("latency", latency),
-			logger.String("ip", c.ClientIP()),
-			logger.String("user_agent", c.Request.UserAgent()),
-		}
-		
-		if requestID, exists := c.Get("request_id"); exists {
-			fields = append(fields, logger.String("request_id", requestID.(string)))
-		}
-		
-		// Logger selon le statut
-		if statusCode >= 500 {
-			logger.Error("Server error", fields...)
-		} else if statusCode >= 400 {
-			logger.Warn("Client error", fields...)
-		} else {
-			logger.Info("Request completed", fields...)
-		}
+			
+			latency := time.Since(start)
+			statusCode := c.Writer.Status()
+			
+			// Log avec contexte
+			fields := []zap.Field{
+				logger.String("method", c.Request.Method),
+				logger.String("path", path),
+				logger.String("query", query),
+				logger.Int("status", statusCode),
+				logger.Duration("latency", latency),
+				logger.String("ip", c.ClientIP()),
+				logger.String("user_agent", c.Request.UserAgent()),
+			}
+			
+			if requestID, exists := c.Get("request_id"); exists {
+				fields = append(fields, logger.String("request_id", requestID.(string)))
+			}
+			
+			// Logger selon le statut
+			if statusCode >= 500 {
+				logger.Error("Server error", fields...)
+			} else if statusCode >= 400 {
+				logger.Warn("Client error", fields...)
+			} else {
+				logger.Info("Request completed", fields...)
+			}
 	}
 }
 

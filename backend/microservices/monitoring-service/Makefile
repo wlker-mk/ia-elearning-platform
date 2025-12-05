@@ -8,9 +8,9 @@ help: ## Afficher l'aide
 	@echo "Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-build: ## Compiler l'application
+build: ## Build l'application
 	@echo "Building $(APP_NAME)..."
-	go build -o bin/$(APP_NAME) ./cmd
+	go build -o bin/$(APP_NAME) ./cmd/main.go
 
 run: ## Lancer l'application localement
 	@echo "Running $(APP_NAME)..."

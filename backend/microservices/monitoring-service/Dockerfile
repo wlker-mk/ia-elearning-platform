@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o monitoring-service ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o monitoring-service ./cmd/main.go
 
 # Final stage
 FROM alpine:latest
@@ -31,7 +31,7 @@ WORKDIR /root/
 COPY --from=builder /app/monitoring-service .
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8012
 
 # Run the application
 CMD ["./monitoring-service"]
