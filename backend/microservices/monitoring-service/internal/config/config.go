@@ -1,21 +1,15 @@
 package config
 
 import (
+	"fmt"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Server   ServerConfig
+	Env      string
+	Port     string
 	Database DatabaseConfig
 	Redis    RedisConfig
-	Services []ServiceConfig
-}
-
-type ServerConfig struct {
-	Port string
-	Mode string
 }
 
 type DatabaseConfig struct {
@@ -32,26 +26,16 @@ type RedisConfig struct {
 	Password string
 }
 
-type ServiceConfig struct {
-	Name     string
-	URL      string
-	Interval int // seconds
-}
-
+// Load charge la configuration depuis les variables d'environnement
 func Load() (*Config, error) {
-	// Charger le fichier .env
-	_ = godotenv.Load()
-
 	cfg := &Config{
-		Server: ServerConfig{
-			Port: getEnv("PORT", "9090"),
-			Mode: getEnv("MODE", "development"),
-		},
+		Env:  getEnv("ENV", "development"),
+		Port: getEnv("PORT", "8080"),
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
-			User:     getEnv("DB_USER", "monitoring"),
-			Password: getEnv("DB_PASSWORD", ""),
+			User:     getEnv("DB_USER", "postgres"),
+			Password: getEnv("DB_PASSWORD", "postgres"),
 			DBName:   getEnv("DB_NAME", "monitoring_db"),
 		},
 		Redis: RedisConfig{
@@ -61,9 +45,40 @@ func Load() (*Config, error) {
 		},
 	}
 
+	// Valider la configuration
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid configuration: %w", err)
+	}
+
 	return cfg, nil
 }
 
+// Validate valide la configuration
+func (c *Config) Validate() error {
+	if c.Port == "" {
+		return fmt.Errorf("PORT is required")
+	}
+
+	if c.Database.Host == "" {
+		return fmt.Errorf("DB_HOST is required")
+	}
+
+	if c.Database.User == "" {
+		return fmt.Errorf("DB_USER is required")
+	}
+
+	if c.Database.DBName == "" {
+		return fmt.Errorf("DB_NAME is required")
+	}
+
+	if c.Redis.Host == "" {
+		return fmt.Errorf("REDIS_HOST is required")
+	}
+
+	return nil
+}
+
+// getEnv récupère une variable d'environnement avec une valeur par défaut
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
