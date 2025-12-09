@@ -48,7 +48,7 @@ func gatewayStatsHandler(gw *gateway.Gateway) gin.HandlerFunc {
 	}
 }
 
-func cacheClearHandler(gw *gateway.Gateway) gin.HandlerFunc {
+func cacheClearHandler(_ *gateway.Gateway) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Cache cleared successfully",

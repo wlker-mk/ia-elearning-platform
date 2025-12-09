@@ -148,3 +148,55 @@ model Wishlist {
   @@unique([studentId, courseId])
   @@map("wishlist")
 }
+
+// ========== CERTIFICATES ==========
+
+model Certificate {
+  id                  String                    @id @default(uuid())
+  userId              String
+  courseId            String
+  course              Course                    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  certificateNumber   String                    @unique
+  issuedAt            DateTime                  @default(now())
+  expiresAt           DateTime?
+  pdfUrl              String?
+  verificationUrl     String
+  grade               String?
+  completionDate      DateTime
+  metadata            Json?
+  verifications       CertificateVerification[]
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  
+  @@unique([userId, courseId])
+  @@index([certificateNumber])
+  @@index([userId])
+  @@map("certificates")
+}
+
+model CertificateVerification {
+  id              String      @id @default(uuid())
+  certificateId   String
+  certificate     Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  verifiedAt      DateTime    @default(now())
+  ipAddress       String?
+  userAgent       String?
+  
+  @@index([certificateId])
+  @@map("certificate_verifications")
+}
+
+model CertificateTemplate {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?   @db.Text
+  templateHtml    String    @db.Text
+  templateCss     String?   @db.Text
+  isDefault       Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  previewUrl      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("certificate_templates")
+}

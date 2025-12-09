@@ -333,13 +333,18 @@ func toErrorLogResponse(log *monitoring.ErrorLog) *ErrorLogResponse {
 }
 
 func toUptimeResponse(uptime *monitoring.Uptime) *UptimeResponse {
+	totalSeconds := uptime.UptimeSeconds + uptime.DowntimeSeconds
+	uptimePercentage := 0.0
+	if totalSeconds > 0 {
+		uptimePercentage = float64(uptime.UptimeSeconds) / float64(totalSeconds) * 100
+	}
 	return &UptimeResponse{
 		ServiceName:      uptime.ServiceName,
 		Date:             uptime.Date,
 		Status:           uptime.Status,
 		UptimeSeconds:    uptime.UptimeSeconds,
 		DowntimeSeconds:  uptime.DowntimeSeconds,
-		UptimePercentage: uptime.UptimePercentage(),
+		UptimePercentage: uptimePercentage,
 		IncidentCount:    uptime.IncidentCount,
 	}
 }
