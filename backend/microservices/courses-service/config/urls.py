@@ -18,7 +18,6 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/health/', health_check),
     
-    # Modules principaux
-    path('api/', include('apps.courses.lessons.urls')),
-    path('api/', include('apps.courses.certificates.urls')),
+    # Package courses (regroupe tous les sous-modules)
+    path('api/', include('apps.courses.urls', namespace='courses')),
 ]

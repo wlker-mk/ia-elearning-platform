@@ -1,23 +1,19 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import (
-    CoursesViewSet,
-    SectionsViewSet,
-    LessonsViewSet,
-    ResourcesViewSet,
-    CategoriesViewSet,
-    TagsViewSet,
-    WishlistViewSet
-)
+"""
+URLs principales du package courses.
+Regroupe toutes les routes des sous-modules.
+"""
 
-router = DefaultRouter()
-router.register(r'sections', SectionsViewSet, basename='section')
-router.register(r'lessons', LessonsViewSet, basename='lesson')
-router.register(r'resources', ResourcesViewSet, basename='resource')
-router.register(r'categories', CategoriesViewSet, basename='category')
-router.register(r'tags', TagsViewSet, basename='tag')
-router.register(r'wishlist', WishlistViewSet, basename='wishlist')
+from django.urls import path, include
+
+app_name = 'courses'
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Module courses (cours, sections, catégories, tags, wishlist)
+    path('', include('apps.courses.courses.urls')),
+    
+    # Module lessons (leçons, ressources)
+    path('', include('apps.courses.lessons.urls')),
+    
+    # Module certificates (certificats, templates)
+    path('', include('apps.courses.certificates.urls')),
 ]
