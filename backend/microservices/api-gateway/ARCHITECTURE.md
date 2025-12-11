@@ -5,7 +5,7 @@
 L'API Gateway est construit sur une architecture en couches avec des responsabilités bien définies.
 
 ## Structure du projet
-```
+
 api-gateway/
 ├── cmd/
 │   └── api-gateway/          # Point d'entrée
@@ -28,10 +28,10 @@ api-gateway/
 ├── configs/                  # Fichiers de configuration
 ├── deployments/              # Déploiement K8s/Docker
 └── tests/                    # Tests
-```
+
 
 ## Flux de requête
-```
+
 1. Client envoie requête
    ↓
 2. Middleware Logger (log entrée)
@@ -59,16 +59,15 @@ api-gateway/
 13. Middleware Logger (log sortie)
    ↓
 14. Client reçoit réponse
-```
 
 ## Composants principaux
 
 ### 1. Gateway Core (`internal/gateway/`)
 
 **Responsabilités:**
-- Gestion du registry des services
-- Configuration des proxies HTTP
-- Coordination des composants
+ Gestion du registry des services
+ Configuration des proxies HTTP
+ Coordination des composants
 
 **Fichiers clés:**
 - `gateway.go` - Structure principale et initialisation

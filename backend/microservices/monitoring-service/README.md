@@ -5,6 +5,7 @@ Service de monitoring robuste et performant pour la plateforme AI E-Learning. Co
 ## 🚀 Fonctionnalités
 
 ### ✅ Monitoring Complet
+
 - **Health Checks** : Vérification de santé des services
 - **Métriques temps réel** : Collecte avec faible overhead (<1% CPU)
 - **Performance Logs** : Temps de réponse, P95, P99
@@ -12,25 +13,27 @@ Service de monitoring robuste et performant pour la plateforme AI E-Learning. Co
 - **Uptime Tracking** : Calcul de disponibilité 24/7
 
 ### 📊 Alertes Intelligentes
+
 - **Multi-niveaux** : INFO, WARNING, ERROR, CRITICAL
 - **Gestion du cycle de vie** : OPEN → ACKNOWLEDGED → RESOLVED → CLOSED
 - **Statistiques** : Temps de résolution moyen, alertes par service
 - **Notifications** : Prêt pour intégration Slack/Email/PagerDuty
 
 ### 💾 Stockage Optimisé
+
 - **PostgreSQL** : Données persistantes avec indexation performante
 - **Redis** : Cache pour métriques temps réel
 - **Batch Processing** : Insertion groupée pour haute performance
 - **Data Retention** : Nettoyage automatique des anciennes données
 
 ### 📈 Dashboard Ready
+
 - **Résumé global** : Vue d'ensemble de tous les services
 - **Métriques agrégées** : Stats horaires/quotidiennes
 - **API REST complète** : Prête pour frontend
 
 ## 🏗️ Architecture
 
-```
 monitoring-service/
 ├── cmd/
 │   └── main.go                    # Point d'entrée
@@ -81,7 +84,6 @@ monitoring-service/
 ├── Makefile
 ├── go.mod
 └── README.md
-```
 
 ## 🛠️ Technologies
 
@@ -95,6 +97,7 @@ monitoring-service/
 ## 📦 Installation
 
 ### Prérequis
+
 - Go 1.21+
 - Docker & Docker Compose
 - Make (optionnel)
@@ -102,49 +105,76 @@ monitoring-service/
 ### Démarrage rapide
 
 ```bash
+
 # 1. Cloner le repository
+
 git clone <repo-url>
 cd monitoring-service
 
 # 2. Copier la configuration
+
 cp .env.example .env
 
 # 3. Démarrer avec Docker Compose
+
 make docker-up
+
 # Ou sans Make:
+
 docker-compose up -d
 
 # 4. Vérifier la santé
-curl http://localhost:8080/health
-```
+
+curl [localhost:8080](http://localhost:8080/health)
+
 
 ### Démarrage en développement local
 
-```bash
+
+
+
+### Démarrage en développement local
+
+bash
+
 # 1. Installer les dépendances
+
 go mod download
 
 # 2. Démarrer PostgreSQL et Redis
+
 docker-compose up -d postgres redis
 
 # 3. Configurer .env avec les bonnes valeurs
 
 # 4. Lancer l'application
+
 make run
+
 # Ou:
+
 go run ./cmd/main.go
-```
+
 
 ## 🔧 Configuration
 
 Variables d'environnement (`.env`) :
 
-```bash
+
+
+## 🔧 Configuration
+
+Variables d'environnement (`.env`) :
+
+bash
+
 # Application
+
 ENV=development              # development | production
 PORT=8080
 
 # PostgreSQL
+
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
@@ -152,48 +182,79 @@ DB_PASSWORD=postgres
 DB_NAME=monitoring_db
 
 # Redis
+
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
-```
+
 
 ## 📚 API Documentation
 
 ### Health Check
-```bash
+
+
+
+## 📚 API Documentation
+
+### Health Check
+
+bash
 GET /health
-```
+
 
 ### Monitoring Endpoints
 
 #### Enregistrer un service
-```bash
+
+
+
+### Monitoring Endpoints
+
+#### Enregistrer un service
+
+bash
 POST /api/v1/services
 Content-Type: application/json
 
 {
   "serviceName": "auth-service",
-  "url": "http://localhost:8081"
+  "url": "[localhost:8081"](http://localhost:8081")
 }
-```
+
 
 #### Effectuer un health check
-```bash
-POST /api/v1/services/auth-service/check?url=http://localhost:8081
-```
+
+
+
+#### Effectuer un health check
+
+bash
+POST /api/v1/services/auth-service/check?url=[localhost:8081](http://localhost:8081)
+
 
 #### Récupérer la santé d'un service
-```bash
+
+
+
+#### Récupérer la santé d'un service
+
+bash
 GET /api/v1/services/auth-service
-```
+
 
 #### Récupérer tous les services
-```bash
-GET /api/v1/services
-```
+
+
 
 #### Enregistrer une métrique
-```bash
+
+
+```
+
+
+#### Enregistrer une métrique
+
+bash
 POST /api/v1/metrics
 Content-Type: application/json
 
@@ -207,10 +268,10 @@ Content-Type: application/json
     "provider": "google"
   }
 }
-```
 
 #### Enregistrer des métriques en batch
-```bash
+
+bash
 POST /api/v1/metrics/batch
 Content-Type: application/json
 
@@ -228,15 +289,15 @@ Content-Type: application/json
     }
   ]
 }
-```
 
 #### Récupérer des métriques
-```bash
+
+bash
 GET /api/v1/metrics/auth-service?from=2024-01-01T00:00:00Z&to=2024-01-31T23:59:59Z&metricName=login_count
-```
 
 #### Enregistrer une performance
-```bash
+
+bash
 POST /api/v1/performance
 Content-Type: application/json
 
@@ -249,22 +310,45 @@ Content-Type: application/json
   "userId": "user-123",
   "ipAddress": "192.168.1.1"
 }
-```
+
 
 #### Statistiques de performance
-```bash
-GET /api/v1/performance/auth-service/stats?from=2024-01-01T00:00:00Z&to=2024-01-31T23:59:59Z
+
+
 ```
 
+
+#### Statistiques de performance
+
+bash
+GET /api/v1/performance/auth-service/stats?from=2024-01-01T00:00:00Z&to=2024-01-31T23:59:59Z
+
+
 #### Dashboard global
-```bash
-GET /api/v1/dashboard/summary
+
+
 ```
+
+
+#### Dashboard global
+
+bash
+GET /api/v1/dashboard/summary
+
 
 ### Alert Endpoints
 
 #### Créer une alerte
-```bash
+
+
+```
+
+
+### Alert Endpoints
+
+#### Créer une alerte
+
+bash
 POST /api/v1/alerts
 Content-Type: application/json
 
@@ -277,83 +361,155 @@ Content-Type: application/json
   "threshold": 5.0,
   "actualValue": 7.2
 }
-```
+
 
 #### Récupérer les alertes
-```bash
-GET /api/v1/alerts?status=OPEN&severity=CRITICAL&limit=50&offset=0
+
+
 ```
+
+
+#### Récupérer les alertes
+
+bash
+GET /api/v1/alerts?status=OPEN&severity=CRITICAL&limit=50&offset=0
+
 
 #### Alertes actives
-```bash
-GET /api/v1/alerts/active
+
+
 ```
+
+
+#### Alertes actives
+
+bash
+GET /api/v1/alerts/active
+
 
 #### Alertes critiques
-```bash
-GET /api/v1/alerts/critical
+
+
 ```
+
+
+#### Alertes critiques
+
+bash
+GET /api/v1/alerts/critical
+
 
 #### Acquitter une alerte
-```bash
-POST /api/v1/alerts/{id}/acknowledge
+
+
 ```
+
+
+#### Acquitter une alerte
+
+bash
+POST /api/v1/alerts/{id}/acknowledge
+
 
 #### Résoudre une alerte
-```bash
-POST /api/v1/alerts/{id}/resolve
+
+
 ```
+
+
+#### Résoudre une alerte
+
+bash
+POST /api/v1/alerts/{id}/resolve
+
 
 #### Statistiques des alertes
-```bash
-GET /api/v1/alerts/statistics?from=2024-01-01T00:00:00Z&to=2024-01-31T23:59:59Z
+
+
 ```
 
+
+#### Statistiques des alertes
+
+bash
+GET /api/v1/alerts/statistics?from=2024-01-01T00:00:00Z&to=2024-01-31T23:59:59Z
+
+
 #### Résumé des alertes
-```bash
-GET /api/v1/alerts/summary
+
+
 ```
+
+
+#### Résumé des alertes
+
+bash
+GET /api/v1/alerts/summary
+
 
 ## 🧪 Tests
 
-```bash
+
+```
+
+
+## 🧪 Tests
+
+bash
+
 # Lancer tous les tests
+
 make test
 
 # Tests avec couverture
+
 make test-coverage
 
 # Linter
+
 make lint
-```
+
 
 ## 🐳 Docker
 
-```bash
+
+```
+
+
+## 🐳 Docker
+
+bash
+
 # Build l'image
+
 make docker-build
 
 # Démarrer tous les services
+
 make docker-up
 
 # Avec outils (pgAdmin, Redis Commander)
+
 make docker-up-tools
 
 # Voir les logs
+
 make docker-logs
 
 # Arrêter
+
 make docker-down
 
 # Nettoyer (+ volumes)
+
 make docker-clean
-```
+
 
 ### Accès aux outils
 
-- **Application** : http://localhost:8080
-- **pgAdmin** : http://localhost:5050 (admin@admin.com / admin)
-- **Redis Commander** : http://localhost:8081
+- **Application** : [localhost:8080](http://localhost:8080)
+- **pgAdmin** : [localhost:5050](http://localhost:5050) (admin@admin.com / admin)
+- **Redis Commander** : [localhost:8081](http://localhost:8081)
 
 ## 🔄 Tâches automatiques
 
@@ -370,7 +526,32 @@ Le service exécute automatiquement :
 
 ## 📊 Schéma de base de données
 
-```sql
+
+```
+
+
+### Accès aux outils
+
+- **Application** : [localhost:8080](http://localhost:8080)
+- **pgAdmin** : [localhost:5050](http://localhost:5050) (admin@admin.com / admin)
+- **Redis Commander** : [localhost:8081](http://localhost:8081)
+
+## 🔄 Tâches automatiques
+
+Le service exécute automatiquement :
+
+- **Cleanup quotidien** (2h du matin) :
+  - Suppression des métriques > 30 jours
+  - Suppression des logs de performance > 30 jours
+  - Suppression des alertes résolues > 90 jours
+
+- **Agrégation des métriques** (toutes les 5 minutes) :
+  - Calcul des statistiques horaires
+  - Mise à jour des dashboards
+
+## 📊 Schéma de base de données
+
+sql
 -- ServiceHealth : État de santé des services
 service_health (
   id, service_name UNIQUE, status, avg_response_time,
@@ -410,7 +591,7 @@ uptime (
   id, service_name, date, status, uptime_seconds,
   downtime_seconds, incident_count, created_at
 ) UNIQUE(service_name, date)
-```
+
 
 ## 🚀 Performance
 
@@ -424,7 +605,23 @@ uptime (
 
 Le service utilise Zap pour des logs structurés haute performance :
 
-```json
+
+```
+
+
+## 🚀 Performance
+
+- **Overhead monitoring** : < 1% CPU sur services monitorés
+- **Latence API** : < 50ms (P95)
+- **Throughput** : > 10,000 req/s
+- **Batch insertion** : 1000 métriques en < 100ms
+- **Cache hit rate** : > 90% sur métriques récentes
+
+## 📝 Logs
+
+Le service utilise Zap pour des logs structurés haute performance :
+
+json
 {
   "level": "info",
   "timestamp": "2024-01-15T10:30:45Z",
@@ -449,6 +646,4 @@ Le service utilise Zap pour des logs structurés haute performance :
 
 MIT
 
-## 👥 Contact
-
-Pour toute question : monitoring@ai-elearning.com
+## 👥 Contact  

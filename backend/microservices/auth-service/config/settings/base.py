@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 from decouple import config
@@ -23,12 +22,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # Third party
     'rest_framework',
     'corsheaders',
     'django_filters',
-    
+
     # Local apps
     'apps.authentication',
 ]
@@ -141,7 +140,7 @@ GITHUB_REDIRECT_URI = os.getenv('GITHUB_REDIRECT_URI', 'http://localhost:3000/au
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",      # ← AJOUTER (Vite dev server)
-    "http://127.0.0.1:5173",   
+    "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://frontend:3000",
@@ -149,7 +148,7 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",      # ← AJOUTER
-    "http://127.0.0.1:5173", 
+    "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://frontend:3000",

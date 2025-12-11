@@ -1,13 +1,78 @@
-version: '3.8'
-
 services:
+  courses-postgres:
+    image: postgres:15
+    container_name: courses_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: rene
+      POSTGRES_DB: courses_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - courses_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d courses_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  courses-redis:
+    image: redis:7-alpine
+    container_name: courses_redis
+    restart: always
+    ports:
+      - "6383:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   courses-service:
     build: .
-    ports:
-      - "8003:8003"
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/courses_service_db
-      - REDIS_URL=redis://localhost:6379
+    container_name: courses_service
     volumes:
       - .:/app
-    command: python manage.py runserver 0.0.0.0:8003
+      - /app/media
+    ports:
+      - "8003:8003"
+    depends_on:
+      courses-postgres:
+        condition: service_healthy
+      courses-redis:
+        condition: service_healthy
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "votre-secret-key-courses-service-super-securisee-ici"
+      POSTGRES_HOST: "courses-postgres"
+      POSTGRES_DB: "courses_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "rene"
+      POSTGRES_PORT: "5432"
+      DATABASE_URL: "postgresql://postgres:rene@localhost:5436/courses_db"
+      REDIS_URL: "redis://courses-redis:6379/0"
+      CELERY_BROKER_URL: "redis://courses-redis:6379/1"
+      CELERY_RESULT_BACKEND: "redis://courses-redis:6379/1"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,backend,courses-service"
+      DJANGO_SETTINGS_MODULE: "config.settings.development"
+      LOG_LEVEL: "INFO"
+      MEDIA_ROOT: "/app/media"
+      MAX_UPLOAD_SIZE: "104857600"
+      ENROLLMENT_EXPIRY_DAYS: "365"
+      CERTIFICATE_VALIDITY_DAYS: "365"
+      MIN_COMPLETION_PERCENTAGE: "80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8003/api/courses/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  courses_postgres_data:

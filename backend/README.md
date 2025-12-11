@@ -24,22 +24,28 @@ Plateforme d'e-learning avancée avec 21 microservices, Django, Prisma et Docker
 ## 🚀 Démarrage Rapide
 
 ```bash
+
 # Cloner le projet
+
 git clone <repo-url>
 cd ai-elearning-platform
 
 # Copier les variables d'environnement
+
 cp .env.example .env
 
 # Lancer tous les services
+
 docker-compose up -d
 
 # Appliquer les migrations Prisma
+
 ./scripts/migrate_all.sh
 
 # Vérifier le statut
+
 docker-compose ps
-```
+
 
 ## 📚 Documentation
 
@@ -49,14 +55,30 @@ docker-compose ps
 
 ## 🧪 Tests
 
-```bash
+
+```
+
+
+## 📚 Documentation
+
+- [API Documentation](docs/api/)
+- [Deployment Guide](docs/deployment/)
+- [Development Setup](docs/development/setup.md)
+
+## 🧪 Tests
+
+bash
+
 # Tests unitaires
+
 pytest tests/unit
 
 # Tests d'intégration
+
 pytest tests/integration
 
 # Tous les tests
+
 make test
 ```
 
