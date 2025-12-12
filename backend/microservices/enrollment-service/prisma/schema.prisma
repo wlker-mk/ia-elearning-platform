@@ -19,71 +19,175 @@ enum EnrollmentStatus {
   PAUSED
 }
 
+enum NoteType {
+  TEXT
+  HIGHLIGHT
+  QUESTION
+}
+
+enum BookmarkType {
+  LESSON
+  TIMESTAMP
+  RESOURCE
+}
+
 model Enrollment {
-  id                  String           @id @default(uuid())
-  studentId           String
-  courseId            String
-  status              EnrollmentStatus @default(ACTIVE)
-  progress            Float            @default(0)
-  isCompleted         Boolean          @default(false)
-  completedAt         DateTime?
-  certificateIssued   Boolean          @default(false)
-  certificateId       String?
-  totalTimeSpent      Int              @default(0)
-  lastAccessedAt      DateTime?
-  purchasePrice       Float?
-  paymentId           String?
-  enrolledAt          DateTime         @default(now())
-  expiresAt           DateTime?
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+  id                String           @id @default(uuid())
+  studentId         String
+  courseId          String
+  status            EnrollmentStatus @default(ACTIVE)
+  progress          Float            @default(0)
+  isCompleted       Boolean          @default(false)
+  completedAt       DateTime?
+  certificateIssued Boolean          @default(false)
+  certificateId     String?
+  totalTimeSpent    Int              @default(0) // en secondes
+  lastAccessedAt    DateTime?
+  purchasePrice     Float?
+  paymentId         String?
+  enrolledAt        DateTime         @default(now())
+  expiresAt         DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relations
+  progressRecords Progress[]
+  certificate     Certificate?
+  notes           Note[]
+  bookmarks       Bookmark[]
+  studySessions   StudySession[]
+
   @@unique([studentId, courseId])
   @@index([studentId, status])
+  @@index([courseId, status])
   @@map("enrollments")
 }
 
 model Progress {
-  id              String    @id @default(uuid())
-  studentId       String
-  lessonId        String
-  courseId        String
-  isCompleted     Boolean   @default(false)
-  percentage      Float     @default(0)
-  timeSpent       Int       @default(0)
-  lastPosition    Int?
-  watchedDuration Int       @default(0)
-  quizScore       Float?
-  quizAttempts    Int       @default(0)
-  notesCount      Int       @default(0)
-  questionsAsked  Int       @default(0)
-  completedAt     DateTime?
-  firstAccessedAt DateTime  @default(now())
-  lastAccessedAt  DateTime  @default(now())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  studentId        String
+  lessonId         String
+  courseId         String
+  enrollmentId     String
+  isCompleted      Boolean   @default(false)
+  percentage       Float     @default(0)
+  timeSpent        Int       @default(0) // en secondes
+  lastPosition     Int? // position dans la vidéo
+  watchedDuration  Int       @default(0)
+  quizScore        Float?
+  quizAttempts     Int       @default(0)
+  notesCount       Int       @default(0)
+  questionsAsked   Int       @default(0)
+  completedAt      DateTime?
+  firstAccessedAt  DateTime  @default(now())
+  lastAccessedAt   DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
   @@unique([studentId, lessonId])
+  @@index([studentId, courseId])
+  @@index([enrollmentId])
   @@map("progress")
 }
 
 model Certificate {
-  id              String    @id @default(uuid())
-  studentId       String
-  courseId        String
-  enrollmentId    String
-  certificateNumber String  @unique
-  verificationCode String  @unique
-  studentName     String
-  studentEmail    String
-  courseTitle     String
-  completionDate  DateTime
-  issueDate       DateTime  @default(now())
-  score           Float?
-  grade           String?
-  certificateUrl  String
-  isValid         Boolean   @default(true)
-  revokedAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String    @id @default(uuid())
+  studentId         String
+  courseId          String
+  enrollmentId      String    @unique
+  certificateNumber String    @unique
+  verificationCode  String    @unique
+  studentName       String
+  studentEmail      String
+  courseTitle       String
+  completionDate    DateTime
+  issueDate         DateTime  @default(now())
+  score             Float?
+  grade             String?
+  certificateUrl    String?
+  isValid           Boolean   @default(true)
+  revokedAt         DateTime?
+  revokeReason      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
   @@unique([studentId, courseId])
+  @@index([verificationCode])
+  @@index([certificateNumber])
   @@map("certificates")
+}
+
+model Note {
+  id           String   @id @default(uuid())
+  studentId    String
+  courseId     String
+  lessonId     String
+  enrollmentId String
+  type         NoteType @default(TEXT)
+  content      String
+  highlight    String? // texte surligné
+  timestamp    Int? // position dans la vidéo
+  pageNumber   Int? // pour les PDFs
+  isPrivate    Boolean  @default(true)
+  color        String? // couleur du surlignage
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, courseId])
+  @@index([enrollmentId])
+  @@map("notes")
+}
+
+model Bookmark {
+  id           String       @id @default(uuid())
+  studentId    String
+  courseId     String
+  lessonId     String
+  enrollmentId String
+  type         BookmarkType @default(LESSON)
+  title        String
+  description  String?
+  timestamp    Int? // pour les vidéos
+  url          String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, courseId])
+  @@index([enrollmentId])
+  @@map("bookmarks")
+}
+
+model StudySession {
+  id           String   @id @default(uuid())
+  studentId    String
+  courseId     String
+  lessonId     String?
+  enrollmentId String
+  startTime    DateTime @default(now())
+  endTime      DateTime?
+  duration     Int      @default(0) // en secondes
+  isActive     Boolean  @default(true)
+  deviceInfo   String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, isActive])
+  @@index([enrollmentId])
+  @@map("study_sessions")
 }

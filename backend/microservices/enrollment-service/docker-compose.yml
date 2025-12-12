@@ -1,0 +1,79 @@
+services:
+  enrollments-postgres:
+    image: postgres:15
+    container_name: enrollments_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: rene
+      POSTGRES_DB: enrollments_db
+    ports:
+      - "5437:5432"
+    volumes:
+      - enrollments_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d enrollments_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  enrollments-redis:
+    image: redis:7-alpine
+    container_name: enrollments_redis
+    restart: always
+    ports:
+      - "6384:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  enrollments-service:
+    build: .
+    container_name: enrollments_service
+    volumes:
+      - .:/app
+    ports:
+      - "8004:8004"
+    depends_on:
+      enrollments-postgres:
+        condition: service_healthy
+      enrollments-redis:
+        condition: service_healthy
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "votre-secret-key-enrollments-service-super-securisee-ici"
+      POSTGRES_HOST: "enrollments-postgres"
+      POSTGRES_DB: "enrollments_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "rene"
+      POSTGRES_PORT: "5432"
+      DATABASE_URL: "postgresql://postgres:rene@localhost:5432/enrollments_db"
+      REDIS_URL: "redis://enrollments-redis:6379/0"
+      CELERY_BROKER_URL: "redis://enrollments-redis:6379/1"
+      CELERY_RESULT_BACKEND: "redis://enrollments-redis:6379/1"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,backend,enrollments-service"
+      DJANGO_SETTINGS_MODULE: "config.settings.development"
+      LOG_LEVEL: "INFO"
+      JWT_SECRET_KEY: "votre-jwt-secret-key-different-de-django-secret"
+      JWT_ACCESS_TOKEN_LIFETIME: "900"
+      JWT_REFRESH_TOKEN_LIFETIME: "604800"
+      MAX_ENROLLMENTS_PER_USER: "50"
+      MIN_PASSING_GRADE: "60"
+      ENROLLMENT_EXPIRY_DAYS: "365"
+      COMPLETION_CERTIFICATE_ENABLED: "True"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8004/api/enrollments/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  enrollments_postgres_data:

@@ -43,27 +43,37 @@ services:
       courses-redis:
         condition: service_healthy
     environment:
+      # Django
       DEBUG: "True"
       SECRET_KEY: "votre-secret-key-courses-service-super-securisee-ici"
+      DJANGO_SETTINGS_MODULE: "config.settings.development"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,backend,courses-service"
+      
+      # ✅ Database - Utilise le nom du service Docker
       POSTGRES_HOST: "courses-postgres"
       POSTGRES_DB: "courses_db"
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "rene"
       POSTGRES_PORT: "5432"
-      DATABASE_URL: "postgresql://postgres:rene@localhost:5436/courses_db"
+      DATABASE_URL: "postgresql://postgres:rene@localhost:5432/courses_db"
+      
+      # ✅ Cache & Queue - Utilise les noms des services Docker
       REDIS_URL: "redis://courses-redis:6379/0"
       CELERY_BROKER_URL: "redis://courses-redis:6379/1"
       CELERY_RESULT_BACKEND: "redis://courses-redis:6379/1"
-      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,backend,courses-service"
-      DJANGO_SETTINGS_MODULE: "config.settings.development"
+      
+      # Application
       LOG_LEVEL: "INFO"
       MEDIA_ROOT: "/app/media"
       MAX_UPLOAD_SIZE: "104857600"
+      
+      # Business Logic
       ENROLLMENT_EXPIRY_DAYS: "365"
       CERTIFICATE_VALIDITY_DAYS: "365"
       MIN_COMPLETION_PERCENTAGE: "80"
+      
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8003/api/courses/health/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8003/api/health/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

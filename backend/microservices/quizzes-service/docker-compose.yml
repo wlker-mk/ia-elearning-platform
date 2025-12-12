@@ -1,13 +1,79 @@
-version: '3.8'
-
 services:
+  quizzes-postgres:
+    image: postgres:15
+    container_name: quizzes_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: rene
+      POSTGRES_DB: quizzes_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - quizzes_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d quizzes_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  quizzes-redis:
+    image: redis:7-alpine
+    container_name: quizzes_redis
+    restart: always
+    ports:
+      - "6385:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   quizzes-service:
     build: .
-    ports:
-      - "8004:8004"
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/quizzes_service_db
-      - REDIS_URL=redis://localhost:6379
+    container_name: quizzes_service
     volumes:
       - .:/app
-    command: python manage.py runserver 0.0.0.0:8004
+    ports:
+      - "8005:8005"
+    depends_on:
+      quizzes-postgres:
+        condition: service_healthy
+      quizzes-redis:
+        condition: service_healthy
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "votre-secret-key-quizzes-service-super-securisee-ici"
+      POSTGRES_HOST: "quizzes-postgres"
+      POSTGRES_DB: "quizzes_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "rene"
+      POSTGRES_PORT: "5432"
+      DATABASE_URL: "postgresql://postgres:rene@localhost:5438/quizzes_db"
+      REDIS_URL: "redis://quizzes-redis:6379/0"
+      CELERY_BROKER_URL: "redis://quizzes-redis:6379/1"
+      CELERY_RESULT_BACKEND: "redis://quizzes-redis:6379/1"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,backend,quizzes-service"
+      DJANGO_SETTINGS_MODULE: "config.settings.development"
+      LOG_LEVEL: "INFO"
+      JWT_SECRET_KEY: "votre-jwt-secret-key-different-de-django-secret"
+      JWT_ACCESS_TOKEN_LIFETIME: "900"
+      JWT_REFRESH_TOKEN_LIFETIME: "604800"
+      MAX_QUESTIONS_PER_QUIZ: "50"
+      DEFAULT_QUIZ_TIME_LIMIT: "1800"
+      AUTO_GRADING_ENABLED: "True"
+      RANDOMIZE_QUESTIONS: "True"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8005/api/quizzes/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  quizzes_postgres_data:

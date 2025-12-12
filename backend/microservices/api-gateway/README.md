@@ -12,7 +12,8 @@ Point d'entrée unique haute performance pour l'architecture microservices.
 - ✅ **22 Microservices** - Architecture complète
 
 ## 🏗️ Architecture
-```
+
+``` c
 Client → API Gateway :8000 → [22 Microservices]
            ↓
      [Redis Cache]
@@ -30,6 +31,7 @@ Client → API Gateway :8000 → [22 Microservices]
 - Redis
 
 ### Quick Start
+
 ```bash
 # 1. Cloner le projet
 cd api-gateway
@@ -53,6 +55,7 @@ make health
 ## 🚀 Utilisation
 
 ### Développement local
+
 ```bash
 # Démarrer le gateway
 make run
@@ -62,6 +65,7 @@ make dev
 ```
 
 ### Avec Docker
+
 ```bash
 # Build & Run
 make docker-build
@@ -87,14 +91,16 @@ make docker-stop
 ## 🔌 API Endpoints
 
 ### Authentification (Public)
-```
+
+```a
 POST   /api/auth/login
 POST   /api/auth/register
 POST   /api/auth/refresh
 ```
 
 ### Users (Protected)
-```
+
+```a
 GET    /api/users
 POST   /api/users
 GET    /api/users/:id
@@ -103,7 +109,8 @@ DELETE /api/users/:id
 ```
 
 ### Courses (Protected)
-```
+
+```a
 GET    /api/courses
 POST   /api/courses
 GET    /api/courses/:id
@@ -114,6 +121,7 @@ DELETE /api/courses/:id
 ## ⚙️ Configuration
 
 ### Variables d'environnement
+
 ```bash
 SERVICE_PORT=8000
 JWT_SECRET=your-secret-key
@@ -123,6 +131,7 @@ RATE_LIMIT_WINDOW=60
 ```
 
 ## 🧪 Tests
+
 ```bash
 # Tous les tests
 make test
@@ -135,6 +144,7 @@ make benchmark
 ```
 
 ## 📊 Monitoring
+
 ```bash
 # Health check
 curl http://localhost:8000/health
@@ -147,6 +157,7 @@ curl http://localhost:8000/api/gateway/stats
 ```
 
 ## 🛠️ Commandes Make
+
 ```bash
 make help              # Aide
 make build             # Build
@@ -161,7 +172,9 @@ make clean             # Clean
 ## 📝 License
 
 MIT
-# API Gateway Documentation
+
+---
+
 
 Bienvenue dans la documentation de l'API Gateway.
 
@@ -185,6 +198,7 @@ L'API Gateway est le point d'entrée unique pour l'architecture microservices. I
 - **Monitoring** - Métriques et logs
 
 ## Démarrage rapide
+
 ```bash
 # Cloner le projet
 git clone <repository-url>
@@ -202,7 +216,8 @@ make run
 ```
 
 ## Architecture
-```
+
+```a
 ┌─────────────┐
 │   Client    │
 └──────┬──────┘
@@ -230,7 +245,7 @@ make run
 
 ## Configuration
 
-### Variables d'environnement
+Les variables d'environnement sont définies dans `.env`.
 
 | Variable | Description | Défaut |
 |----------|-------------|---------|
@@ -269,7 +284,8 @@ Le gateway route vers 21 microservices:
 ## Endpoints
 
 ### Public Endpoints
-```
+
+```a
 POST   /api/auth/login        - Connexion utilisateur
 POST   /api/auth/register     - Inscription utilisateur
 POST   /api/auth/refresh      - Rafraîchir le token
@@ -279,10 +295,11 @@ GET    /health                - Health check
 ### Protected Endpoints
 
 Nécessitent un token JWT valide dans le header Authorization:
-```
+
+```a
 Authorization: Bearer <token>
-```
-```
+```a
+```a
 GET    /api/users             - Liste des utilisateurs
 GET    /api/courses           - Liste des cours
 POST   /api/courses           - Créer un cours
@@ -293,13 +310,15 @@ GET    /api/payments          - Historique des paiements
 ### Admin Endpoints
 
 Nécessitent un rôle admin:
-```
+
+```a
 GET    /api/admin/users       - Gestion utilisateurs
 GET    /api/admin/statistics  - Statistiques système
 POST   /api/admin/cache/clear - Vider le cache
 ```
 
 ## Tests
+
 ```bash
 # Tous les tests
 make test
@@ -331,7 +350,3 @@ Pour toute question ou problème:
 - Ouvrir une issue sur GitHub
 - Consulter la [documentation complète](./docs/)
 - Contacter l'équipe via Slack
-
-## License
-
-MIT License - voir [LICENSE](../LICENSE)

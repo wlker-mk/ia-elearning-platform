@@ -103,47 +103,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Celery Worker (optionnel, décommenter si nécessaire)
-  # celery-worker:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: analytics_celery_worker
-  #   restart: unless-stopped
-  #   command: celery -A config worker -l info
-  #   depends_on:
-  #     - postgres
-  #     - redis
-  #     - analytics-service
-  #   environment:
-  #     DATABASE_URL: "postgresql://postgres:rene@postgres:5432/analytics_db"
-  #     CELERY_BROKER_URL: "redis://redis:6379/1"
-  #     CELERY_RESULT_BACKEND: "redis://redis:6379/1"
-  #   volumes:
-  #     - .:/app
-  #   networks:
-  #     - analytics-network
-
-  # Celery Beat (optionnel, pour tâches planifiées)
-  # celery-beat:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: analytics_celery_beat
-  #   restart: unless-stopped
-  #   command: celery -A config beat -l info
-  #   depends_on:
-  #     - postgres
-  #     - redis
-  #     - analytics-service
-  #   environment:
-  #     DATABASE_URL: "postgresql://postgres:rene@postgres:5432/analytics_db"
-  #     CELERY_BROKER_URL: "redis://redis:6379/1"
-  #   volumes:
-  #     - .:/app
-  #   networks:
-  #     - analytics-network
-
 volumes:
   postgres_data:
     driver: local

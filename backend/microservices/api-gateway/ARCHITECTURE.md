@@ -29,7 +29,6 @@ api-gateway/
 ├── deployments/              # Déploiement K8s/Docker
 └── tests/                    # Tests
 
-
 ## Flux de requête
 
 1. Client envoie requête
@@ -70,6 +69,7 @@ api-gateway/
  Coordination des composants
 
 **Fichiers clés:**
+
 - `gateway.go` - Structure principale et initialisation
 - `config.go` - Enregistrement des services
 - `proxy.go` - Logique de proxying
@@ -79,11 +79,13 @@ api-gateway/
 ### 2. Router (`internal/router/`)
 
 **Responsabilités:**
+
 - Définition des routes
 - Association routes ↔ services
 - Regroupement par niveau d'accès
 
 **Fichiers clés:**
+
 - `router.go` - Configuration complète des routes
 - `health.go` - Endpoints de santé
 - `handlers.go` - Handlers spécifiques
@@ -91,11 +93,13 @@ api-gateway/
 ### 3. Middleware (`internal/middleware/`)
 
 **Stack de middlewares:**
-```
+
+```r
 Recovery → Logger → CORS → RequestID → Security → Auth → RateLimit → Timeout
 ```
 
 Chaque middleware:
+
 - Peut court-circuiter la chaîne
 - Enrichit le contexte
 - Log ses actions
@@ -104,7 +108,8 @@ Chaque middleware:
 ### 4. Authentication (`internal/auth/`)
 
 **JWT Flow:**
-```
+
+```c
 1. Client login → Auth Service
 2. Auth Service génère JWT
 3. Client stocke JWT
@@ -117,8 +122,9 @@ Chaque middleware:
 
 ### 5. Rate Limiting (`internal/ratelimit/`)
 
-**Algorithme: Sliding Window avec Redis**
-```
+**Règles:**
+
+```r
 Key: ratelimit:{client_ip}
 TTL: 60 secondes
 Max: 100 requêtes
@@ -132,7 +138,8 @@ Pour chaque requête:
 ### 6. Circuit Breaker (`internal/circuit/`)
 
 **États:**
-```
+
+```e
 CLOSED (normal)
   │ 5 erreurs consécutives
   ↓
@@ -145,6 +152,7 @@ HALF_OPEN (teste service)
 ```
 
 **Configuration par service:**
+
 - Threshold: 5 erreurs
 - Timeout: 30 secondes
 - Reset automatique
@@ -154,23 +162,27 @@ HALF_OPEN (teste service)
 **Algorithmes disponibles:**
 
 1. **Round Robin** (défaut)
-```
+
+```e
 S1 → S2 → S3 → S1 → ...
 ```
 
-2. **Least Connections**
-```
+2.**Least Connections**
+
+```e
 Choisit le serveur avec le moins de connexions actives
 ```
 
 ### 8. Service Discovery (`internal/discovery/`)
 
 **Mode statique (actuel):**
+
 - Services définis dans .env
 - Enregistrement au démarrage
 - URLs hardcodées
 
 **Migration future vers Consul:**
+
 - Service registration automatique
 - Health checks distribués
 - DNS-based discovery
@@ -180,11 +192,13 @@ Choisit le serveur avec le moins de connexions actives
 **Stratégies:**
 
 1. **Redis Cache** (production)
+
 - Cache distribué
 - Persistance optionnelle
 - TTL configurable
 
-2. **Memory Cache** (dev/test)
+2.**Memory Cache** (dev/test)
+
 - Cache local
 - Pas de persistance
 - Rapide pour tests
@@ -192,6 +206,7 @@ Choisit le serveur avec le moins de connexions actives
 ### 10. Metrics (`internal/metrics/`)
 
 **Métriques exposées:**
+
 - `gateway_requests_total` - Total requêtes
 - `gateway_request_duration_seconds` - Latence
 - `gateway_errors_total` - Total erreurs
@@ -201,24 +216,30 @@ Choisit le serveur avec le moins de connexions actives
 ## Patterns utilisés
 
 ### 1. Middleware Pattern
+
 Chaîne de responsabilité pour traiter requêtes
 
 ### 2. Circuit Breaker Pattern
+
 Protection contre cascades de pannes
 
 ### 3. Proxy Pattern
+
 Encapsulation des appels services
 
 ### 4. Factory Pattern
+
 Création d'objets (cache, limiters)
 
 ### 5. Singleton Pattern
+
 Instance unique du gateway
 
 ## Scalabilité
 
 ### Horizontal Scaling
-```
+
+```l
 Load Balancer (L7)
     │
     ├─→ Gateway Instance 1
@@ -229,6 +250,7 @@ Load Balancer (L7)
 ```
 
 **Avantages:**
+
 - Pas de session affinity requise
 - État partagé dans Redis
 - Scale indépendamment des services
@@ -236,6 +258,7 @@ Load Balancer (L7)
 ### Vertical Scaling
 
 **Optimisations possibles:**
+
 - Augmenter pool de connexions HTTP
 - Buffer sizes plus grands
 - More goroutines pour proxy
@@ -243,6 +266,7 @@ Load Balancer (L7)
 ## Sécurité
 
 ### Headers de sécurité
+
 ```go
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
@@ -274,18 +298,21 @@ Content-Security-Policy: default-src 'self'
 ### Optimisations
 
 1. **Connection pooling**
+
 ```go
 MaxIdleConns: 100
 MaxIdleConnsPerHost: 100
 IdleConnTimeout: 90s
 ```
 
-2. **Keep-alive**
+2.**Keep-alive**
+
 ```go
 DisableKeepAlives: false
 ```
 
-3. **Timeouts**
+3.**Timeouts**
+
 ```go
 Timeout: 30s
 ReadTimeout: 15s
@@ -295,6 +322,7 @@ WriteTimeout: 15s
 ## Observabilité
 
 ### Logging
+
 ```json
 {
   "level": "info",
@@ -311,6 +339,7 @@ WriteTimeout: 15s
 ### Tracing
 
 Integration avec Jaeger/Zipkin:
+
 - Trace ID propagation
 - Span creation par service
 - Visualisation des appels
@@ -318,6 +347,7 @@ Integration avec Jaeger/Zipkin:
 ### Alerting
 
 Alertes configurées sur:
+
 - Taux d'erreur > 1%
 - Latence P99 > 500ms
 - Circuit breaker OPEN
@@ -326,12 +356,14 @@ Alertes configurées sur:
 ## Évolution future
 
 ### Phase 2
+
 - [ ] Service mesh integration (Istio)
 - [ ] gRPC support
 - [ ] GraphQL federation
 - [ ] WebSocket support
 
 ### Phase 3
+
 - [ ] Multi-region deployment
 - [ ] Chaos engineering
 - [ ] A/B testing support

@@ -1,11 +1,11 @@
-generator client {{
+generator client {
   provider = "prisma-client-py"
-}}
+}
 
-datasource db {{
+datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}}
+}
 
 enum CourseStatus {
   DRAFT
@@ -44,7 +44,6 @@ model Course {
   description         String         @db.Text
   instructorId        String
   categoryId          String
-  tags                CourseTag[]
   language            String         @default("ENGLISH")
   difficulty          CourseDifficulty
   type                CourseType
@@ -59,8 +58,15 @@ model Course {
   publishedAt         DateTime?
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  
+  // ✅ Relations
   sections            Section[]
+  courseTags          CourseTag[]
+  wishlistItems       Wishlist[]
+  certificates        Certificate[]
+  
   @@index([slug, instructorId])
+  @@index([categoryId])
   @@map("courses")
 }
 
@@ -71,9 +77,13 @@ model Section {
   description     String?   @db.Text
   order           Int
   duration        Int       @default(0)
-  lessons         Lesson[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  
+  // ✅ Relations
+  course          Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons         Lesson[]
+  
   @@index([courseId, order])
   @@map("sections")
 }
@@ -88,9 +98,13 @@ model Lesson {
   videoUrl        String?
   videoDuration   Int?
   isFree          Boolean   @default(false)
-  resources       Resource[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  
+  // ✅ Relations
+  section         Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  resources       Resource[]
+  
   @@index([sectionId, order])
   @@map("lessons")
 }
@@ -106,6 +120,10 @@ model Resource {
   downloadCount   Int       @default(0)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  
+  // ✅ Relations
+  lesson          Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
   @@index([lessonId])
   @@map("resources")
 }
@@ -119,16 +137,21 @@ model Category {
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  
   @@map("categories")
 }
 
 model Tag {
-  id              String    @id @default(uuid())
-  name            String    @unique
-  slug            String    @unique
-  usageCount      Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id              String      @id @default(uuid())
+  name            String      @unique
+  slug            String      @unique
+  usageCount      Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // ✅ Relations
+  courseTags      CourseTag[]
+  
   @@map("tags")
 }
 
@@ -136,7 +159,14 @@ model CourseTag {
   id              String    @id @default(uuid())
   courseId        String
   tagId           String
+  
+  // ✅ Relations
+  course          Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tag             Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
   @@unique([courseId, tagId])
+  @@index([courseId])
+  @@index([tagId])
   @@map("course_tags")
 }
 
@@ -145,7 +175,13 @@ model Wishlist {
   studentId       String
   courseId        String
   addedAt         DateTime  @default(now())
+  
+  // ✅ Relations
+  course          Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
   @@unique([studentId, courseId])
+  @@index([studentId])
+  @@index([courseId])
   @@map("wishlist")
 }
 
@@ -155,7 +191,6 @@ model Certificate {
   id                  String                    @id @default(uuid())
   userId              String
   courseId            String
-  course              Course                    @relation(fields: [courseId], references: [id], onDelete: Cascade)
   certificateNumber   String                    @unique
   issuedAt            DateTime                  @default(now())
   expiresAt           DateTime?
@@ -164,23 +199,29 @@ model Certificate {
   grade               String?
   completionDate      DateTime
   metadata            Json?
-  verifications       CertificateVerification[]
   createdAt           DateTime                  @default(now())
   updatedAt           DateTime                  @updatedAt
+  
+  //  Relations
+  course              Course                    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  verifications       CertificateVerification[]
   
   @@unique([userId, courseId])
   @@index([certificateNumber])
   @@index([userId])
+  @@index([courseId])
   @@map("certificates")
 }
 
 model CertificateVerification {
   id              String      @id @default(uuid())
   certificateId   String
-  certificate     Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
   verifiedAt      DateTime    @default(now())
   ipAddress       String?
   userAgent       String?
+  
+  //  Relations
+  certificate     Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
   
   @@index([certificateId])
   @@map("certificate_verifications")
