@@ -1,11 +1,12 @@
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import routers
+from django.http import JsonResponse
 
-router = routers.DefaultRouter()
+def health_check(request):
+    return JsonResponse({'status': 'healthy', 'service': 'storage-service'})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
-    path('api/health/', lambda request: JsonResponse({'status': 'healthy'})),
+    path('api/storage/', include('apps.storage.urls')),
+    path('api/health/', health_check),
 ]
