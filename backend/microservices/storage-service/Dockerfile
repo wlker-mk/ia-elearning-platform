@@ -2,24 +2,36 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Installer les dépendances système y compris Node.js pour Prisma
 RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Installer les dépendances Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Installer Prisma CLI globalement
+RUN npm install -g prisma
+
+# Copier l'application
 COPY . .
 
-# Make entrypoint executable
+# Créer le répertoire de logs
+RUN mkdir -p /app/logs
+
+# Rendre le point d'entrée exécutable
 RUN chmod +x docker-entrypoint.sh
 
-# Expose port
-EXPOSE 8014
+# Générer le client Prisma
+RUN prisma generate
 
-ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8014", "--workers", "4"]
+# Exposer le port
+EXPOSE 8015
+
+# Démarrer l'application
+CMD ["./docker-entrypoint.sh"]
